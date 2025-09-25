@@ -56,15 +56,50 @@ final appTheme = ThemeData(
     )
   ),
 
+  iconButtonTheme: IconButtonThemeData(
+    style: IconButton.styleFrom(
+      shape: RoundedRectangleBorder(
+        borderRadius: appElementBorderRadius
+      )
+    )
+  ),
+
   // Стили для шрифтов
   textTheme: TextTheme(
+    titleMedium: TextStyle(
+      fontSize: 16,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.bold
+    ),
     headlineSmall: TextStyle(
+      fontSize: 20,
       fontFamily: "Roboto",
       fontWeight: FontWeight.w900
     ),
-    titleMedium: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.bold
+    headlineMedium: TextStyle(
+      fontSize: 24,
+      fontFamily: "Roboto",
+      fontWeight: FontWeight.w900
+    ),
+    headlineLarge: TextStyle(
+      fontSize: 28,
+      fontFamily: "Roboto",
+      fontWeight: FontWeight.w900  
+    ),
+    displaySmall: TextStyle(
+      fontSize: 30,
+      fontFamily: "Roboto",
+      fontWeight: FontWeight.w900
+    ),
+    displayMedium: TextStyle(
+      fontSize: 32,
+      fontFamily: "Roboto",
+      fontWeight: FontWeight.w900
+    ),
+    displayLarge: TextStyle(
+      fontSize: 34,
+      fontFamily: "Roboto",
+      fontWeight: FontWeight.w900  
     )
   )
 

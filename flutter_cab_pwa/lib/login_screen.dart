@@ -8,8 +8,8 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final ColorScheme colorScheme = theme.colorScheme;
+    final ThemeData themeData = Theme.of(context);
+    final ColorScheme colorScheme = themeData.colorScheme;
 
     return Scaffold(
       backgroundColor: Colors.blue,
@@ -23,7 +23,7 @@ class LoginScreen extends StatelessWidget {
               color: colorScheme.surfaceContainerLowest
             ),
             child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.7,
+              width: MediaQuery.widthOf(context) * 0.7,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -31,23 +31,19 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       SvgPicture.asset(
                         "assets/elsy_icon.svg", width: 40, height: 40, 
-                        colorFilter: ColorFilter.mode(
-                          colorScheme.onSurface, 
-                          BlendMode.srcIn
-                        )
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: 5),
                       Text("Кабинет водителя",
-                        style: theme.textTheme.headlineSmall
+                        style: themeData.textTheme.headlineMedium
                       ),
                     ]
                   ),
-                  SizedBox(height: 15),
+                  SizedBox(height: 35),
                   Align(
                     alignment: Alignment.center,
                     child: Text(
                       "Пожалуйста, представьтесь",
-                      style: theme.textTheme.titleMedium,
+                      style: themeData.textTheme.titleMedium,
                     )
                   ),
                   SizedBox(height: 10),
