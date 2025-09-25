@@ -9,8 +9,11 @@ ColorScheme appColorSheme = ColorScheme.fromSeed(
 );
 
 final appTheme = ThemeData(
+
   useMaterial3: true,
   colorScheme: appColorSheme,
+
+  // Стиль для полей ввода текста
   inputDecorationTheme: InputDecorationTheme(
     labelStyle: WidgetStateTextStyle.resolveWith((Set<WidgetState> states) {
       if (states.contains(WidgetState.error)) {
@@ -21,22 +24,48 @@ final appTheme = ThemeData(
     
     border: OutlineInputBorder(
       borderSide: BorderSide(color: appColorSheme.outline),
-      borderRadius: appTexBoxBorderRadius,
+      borderRadius: appElementBorderRadius,
     ),
     enabledBorder: OutlineInputBorder(
       borderSide: BorderSide(color: appColorSheme.outline),
-      borderRadius: appTexBoxBorderRadius,
+      borderRadius: appElementBorderRadius,
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: appTexBoxBorderRadius,
+      borderRadius: appElementBorderRadius,
       borderSide: BorderSide(width: 2, color: appColorSheme.primary),
     ),
     errorBorder: OutlineInputBorder(
       borderSide: BorderSide(color: appColorSheme.error),
-      borderRadius: appTexBoxBorderRadius,
+      borderRadius: appElementBorderRadius,
     ),
     
     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
   ),
+
+  // Стиль для кнопок
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      shape: RoundedRectangleBorder(
+        borderRadius: appElementBorderRadius
+      ),
+      backgroundColor: appColorSheme.primary,
+      foregroundColor: appColorSheme.onPrimary,
+      textStyle: TextStyle(
+        height: 1
+      )
+    )
+  ),
+
+  // Стили для шрифтов
+  textTheme: TextTheme(
+    headlineSmall: TextStyle(
+      fontFamily: "Roboto",
+      fontWeight: FontWeight.w900
+    ),
+    titleMedium: TextStyle(
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.bold
+    )
+  )
 
 );
