@@ -1,10 +1,11 @@
-// login_screen
+// screen_login.dart
 import 'package:flutter/material.dart';
 import 'styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'screen_main.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class ScreenLogin extends StatelessWidget {
+  const ScreenLogin({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +64,15 @@ class LoginScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      ElevatedButton(
-                        onPressed: (){}, 
-                        child: Text("Войти")
+                      ElevatedButton( 
+                        child: Text("Войти"),
+                        onPressed: (){
+                          // Переход на главный экран
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => ScreenMain()),
+                          );
+                        },
                       ),
                       ElevatedButton(
                         onPressed: (){}, 
