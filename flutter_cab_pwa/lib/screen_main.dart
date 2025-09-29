@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'page_home.dart';
 import 'page_account.dart';
 import 'menu_account.dart';
+import 'screen_login.dart';
 
 class ScreenMain extends StatefulWidget {
   const ScreenMain({super.key});
@@ -13,11 +14,16 @@ class ScreenMain extends StatefulWidget {
     return _StateMainScreen();
   }
 }
-  
+
+// Перечисление страниц, которые могут быть отображены на главном экране
+enum PagesMainScreen {
+  pageHome,         // index = 0 -> PageHome()
+  pageAccount       // index = 1 -> PageAccount()    
+}  
 class _StateMainScreen extends State<ScreenMain> {
   
   // Текуший индекс страницы на главном экране
-  int _currentIndex = 0;
+  PagesMainScreen _currentPage = PagesMainScreen.pageHome;
 
   // Список страниц, для отображения на экране
   final List<Widget> _pages = [
@@ -60,7 +66,7 @@ class _StateMainScreen extends State<ScreenMain> {
             // Меню аккаунта и настроек
             Row(
               children: [
-                // Аккаунт
+                // Меню аккаунта
                 IconButton(
                   icon: SvgPicture.asset(
                     "assets/user_icon.svg",
@@ -72,10 +78,11 @@ class _StateMainScreen extends State<ScreenMain> {
                     ),
                   ),
                   onPressed: (){
-                    _showTopPanel(context);
+                    // Отображаем меню аккаунта
+                    _showAccountMenu(context);
                   }
                 ),
-                // Настройки
+                // Меню настроек
                 IconButton(
                   icon: SvgPicture.asset(
                     "assets/menu_icon.svg",
@@ -86,7 +93,9 @@ class _StateMainScreen extends State<ScreenMain> {
                       BlendMode.srcIn
                     ),
                   ),
-                  onPressed: (){}
+                  onPressed: (){
+                    // Пока не готово
+                  }
                 )
               ],
             )
@@ -95,19 +104,21 @@ class _StateMainScreen extends State<ScreenMain> {
       ),
       body: 
         IndexedStack(
-        index: _currentIndex,
-        children: _pages
-      ),
+          index: _currentPage.index,  // Индекс отображаемой страницы
+          children: _pages            // Список страниц главного экрана
+        ),
     );
   }
 
-  void _showTopPanel(BuildContext context) {
-    double heightAppBar = AppBar().preferredSize.height;
-    double heightSystemStatusBar = MediaQuery.of(context).padding.top;
+  // Процедура отображения и настройки меню Аккаунт
+  void _showAccountMenu(BuildContext context) {
+    double heightAppBar = kToolbarHeight;           // Высота стандартного toolbar = 56.0
 
     OverlayEntry? overlayEntry;
     overlayEntry = OverlayEntry(
       builder: (context) {
+        double heightSystemStatusBar = MediaQuery.of(context).padding.top;  //высота системного toolbar на устройстве
+
         return Stack(
           children: [
             ModalBarrier(
@@ -115,11 +126,25 @@ class _StateMainScreen extends State<ScreenMain> {
               onDismiss: () => overlayEntry?.remove(),
             ),
             Positioned(
-              top: heightAppBar + heightSystemStatusBar,
-              right: 0,
-              child: IntrinsicWidth( // Ключевая обёртка: делает ширину равной самому широкому дочернему элементу
+              top: heightAppBar + heightSystemStatusBar,  // Вычисляем координату верхней границы меню, что бы меню открывалось ровно после toolbar приложения
+              right: 0,                                   // По горизонтали менб примыкает к правому краю приложения
+              child: IntrinsicWidth(                      // Ключевая обёртка: делает ширину равной самому широкому дочернему элементу
                 stepWidth: 56.0, 
                 child: MenuAccount(
+                  // Логика перехода на страницу Аккаунт
+                  onShowAccountPage: () {
+                    setState(() {
+                      _currentPage = PagesMainScreen.pageAccount;
+                    });
+                  },
+                  // Логика разлогирования
+                  onLogout: () {
+                    Navigator.pushReplacement(
+                      context, 
+                      MaterialPageRoute(builder: (context) => ScreenLogin())
+                    );
+                  },
+                  // Логика функции закрытия меню
                   onClose: () => overlayEntry?.remove(),
                 )
               )
