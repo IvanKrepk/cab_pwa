@@ -28,6 +28,38 @@ class PageAccount extends StatelessWidget {
             style: themeData.textTheme.displayMedium?.apply(
               color: colorScheme.onSurface
             ),
+          ),
+          Container(
+            margin: appContainerMargin,
+            padding: appContainerPadding,
+            decoration: BoxDecoration(
+              borderRadius: appContainerBorderRadius,
+              color: colorScheme.surfaceContainerLowest
+            ),
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Имя пользователя",
+                    textAlign: TextAlign.left,
+                    style: themeData.textTheme.displaySmall?.apply(
+                      color: colorScheme.onSurface
+                    ),
+                  )
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "333",
+                    textAlign: TextAlign.left,
+                    style: themeData.textTheme.displaySmall?.apply(
+                      color: colorScheme.onSurface
+                    ),
+                  )
+                )
+              ],
+            ),
           )
         ]
       )
