@@ -63,7 +63,7 @@ class _StateMainScreen extends State<ScreenMain> {
                 )
               ],
             ),
-            // Меню аккаунта и настроек
+            // Меню аккаунта и основное меню
             Row(
               children: [
                 // Меню аккаунта
@@ -82,7 +82,7 @@ class _StateMainScreen extends State<ScreenMain> {
                     _showAccountMenu(context);
                   }
                 ),
-                // Меню настроек
+                // Основное меню
                 IconButton(
                   icon: SvgPicture.asset(
                     "assets/menu_icon.svg",

@@ -66,8 +66,28 @@ final appTheme = ThemeData(
 
   // Стили для шрифтов
   textTheme: TextTheme(
+    bodySmall: TextStyle(
+      fontSize: 12,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.normal
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.normal
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.normal
+    ),
     titleMedium: TextStyle(
       fontSize: 16,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.bold
+    ),
+    titleLarge: TextStyle(
+      fontSize: 20,
       fontFamily: 'Roboto',
       fontWeight: FontWeight.bold
     ),

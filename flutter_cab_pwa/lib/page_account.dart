@@ -1,6 +1,7 @@
 // page_account.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
+import 'element_password_field.dart';
 
 class PageAccount extends StatelessWidget {
   const PageAccount({super.key});
@@ -15,53 +16,145 @@ class PageAccount extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface
       ),
-      child: Column (
-        children: [
-          Text(
-            "Аккаунт",
-            style: themeData.textTheme.displayMedium?.apply(
-              color: colorScheme.onSurface
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Column (
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Аккаунт",
+              style: themeData.textTheme.displayMedium?.apply(
+                color: colorScheme.onSurface
+              ),
             ),
-          ),
-          Text(
-            "Основная информация",
-            style: themeData.textTheme.displayMedium?.apply(
-              color: colorScheme.onSurface
+            SizedBox(height: 15),
+            Text(
+              "Основная информация",
+              style: themeData.textTheme.headlineMedium?.apply(
+                color: colorScheme.onSurface
+              ),
             ),
-          ),
-          Container(
-            margin: appContainerMargin,
-            padding: appContainerPadding,
-            decoration: BoxDecoration(
-              borderRadius: appContainerBorderRadius,
-              color: colorScheme.surfaceContainerLowest
-            ),
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Имя пользователя",
-                    textAlign: TextAlign.left,
-                    style: themeData.textTheme.displaySmall?.apply(
-                      color: colorScheme.onSurface
+            // Имя пользователя
+            Center(
+                child: Container(
+                  margin: EdgeInsets.only(top: 20),
+                  padding: appContainerPadding,
+                  decoration: BoxDecoration(
+                    borderRadius: appContainerBorderRadius,
+                    color: colorScheme.surfaceContainerLowest
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Имя пользователя",
+                          style: themeData.textTheme.titleLarge?.apply(
+                            color: colorScheme.onSurface
+                          ),
+                        )
+                      ),
+                      SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "333",
+                          style: themeData.textTheme.titleLarge?.apply(
+                            color: colorScheme.onSurface
+                          ),
+                        )
+                      )
+                    ],
+                  ),
+                )
+              ),
+            // Новый пароль
+            Center(
+              child: Container(
+                margin: EdgeInsets.only(top: 10),
+                padding: appContainerPadding,
+                decoration: BoxDecoration(
+                  borderRadius: appContainerBorderRadius,
+                  color: colorScheme.surfaceContainerLowest
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Новый пароль",
+                        style: themeData.textTheme.titleLarge?.apply(
+                          color: colorScheme.onSurface
+                        ),
+                      )
                     ),
+                    SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 300),
+                        child: ElementPasswordField()
+                      )                       
+                    )
+                  ],
+                ),
+              )
+            ),
+            // Отображаемое имя
+            Center(
+              child: Container(
+                margin: EdgeInsets.only(top: 10),
+                padding: appContainerPadding,
+                decoration: BoxDecoration(
+                  borderRadius: appContainerBorderRadius,
+                  color: colorScheme.surfaceContainerLowest
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Отображаемое имя",
+                        style: themeData.textTheme.titleLarge?.apply(
+                          color: colorScheme.onSurface
+                        ),
+                      )
+                    ),
+                    SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 300), 
+                        child: TextField(),
+                      )                    
+                    )
+                  ],
+                ),
+              )
+            ),
+            SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton( 
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 20)
+                ),
+                child: Text(
+                  "Сохранить", 
+                  style: themeData.textTheme.titleMedium?.apply(
+                    color: colorScheme.onPrimary
                   )
                 ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "333",
-                    textAlign: TextAlign.left,
-                    style: themeData.textTheme.displaySmall?.apply(
-                      color: colorScheme.onSurface
-                    ),
-                  )
-                )
-              ],
-            ),
-          )
-        ]
+                onPressed: (){
+                  // Сохраняем настройки аккаунта ...
+                }
+              )
+            )
+          ]
+        )
       )
     );
   }
