@@ -1,0 +1,47 @@
+# ----------------------------
+# ASP.NET Core / .NET (backend)
+# ----------------------------
+CabPwaApi/CabPwaApi/bin/
+CabPwaApi/CabPwaApi/obj/
+CabPwaApi/CabPwaApi/out/
+CabPwaApi/CabPwaApi/dist/
+CabPwaApi/CabPwaApi/artifacts/
+
+# Файлы Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+CabPwaApi/.vs/
+
+# Публикации
+CabPwaApi/CabPwaApi/Properties/PublishProfiles/
+
+# ----------------------------
+# Общие системные файлы
+# ----------------------------
+CabPwaApi/CabPwaApi/.DS_Store
+CabPwaApi/CabPwaApi/Thumbs.db
+*.tmp
+*.log
+*logs/  # Если логи пишутся в папку logs (рекомендуется)
+
+# ----------------------------
+# Переменные окружения (КРИТИЧЕСКИ ВАЖНО!)
+# ----------------------------
+.env
+*.env
+CabPwaApi/CabPwaApi/appsettings.Development.json  # Часто содержит тестовые данные
+CabPwaApi/CabPwaApi/secrets.json
+
+# ----------------------------
+# NuGet
+# ----------------------------
+CabPwaApi/CabPwaApi/packages/
+
+# ----------------------------
+# macOS
+# ----------------------------
+.DS_Store
+.AppleDouble
+.LSOverride

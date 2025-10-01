@@ -1,0 +1,6 @@
+@CabPwaApi_HostAddress = http://localhost:5076
+
+GET {{CabPwaApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
