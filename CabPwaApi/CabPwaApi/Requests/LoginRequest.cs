@@ -6,9 +6,9 @@ namespace CabPwaApi.Requests
     public class LoginRequest
     {
         [JsonPropertyName("web_login")]
-        public string? web_login { get; set; }
+        public string web_login { get; set; } = string.Empty;
 
         [JsonPropertyName("password")]
-        public string? password { get; set; }
+        public string password { get; set; } = string.Empty;
     }
 }
