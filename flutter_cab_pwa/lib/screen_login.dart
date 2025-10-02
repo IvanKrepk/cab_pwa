@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'screen_main.dart';
+import 'services/api_service.dart';
 
 class ScreenLogin extends StatelessWidget {
   const ScreenLogin({super.key});
@@ -66,12 +66,14 @@ class ScreenLogin extends StatelessWidget {
                     children: [
                       ElevatedButton( 
                         child: Text("Войти"),
-                        onPressed: (){
+                        onPressed: () {
+                          // Попытка залогиниться                        
+                          ApiService.login();
                           // Переход на главный экран
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => ScreenMain()),
-                          );
+                          //Navigator.pushReplacement(
+                          //  context,
+                          //  MaterialPageRoute(builder: (context) => ScreenMain()),
+                          //);
                         },
                       ),
                       ElevatedButton(
