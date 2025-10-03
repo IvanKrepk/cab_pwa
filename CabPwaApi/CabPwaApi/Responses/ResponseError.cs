@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CabPwaApi.Responses.LoginResponse
+namespace CabPwaApi.Responses
 {
-    public class LoginResponseError: LoginResponse
+    public class ResponseError: Response
     {
         [JsonPropertyName("message")]
         public string? message { get; set; }

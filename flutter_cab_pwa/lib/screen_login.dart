@@ -2,7 +2,11 @@
 import 'package:flutter/material.dart';
 import 'styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'services/api_service.dart';
+import 'services/service_api.dart';
+import 'services/service_ui.dart';
+import 'models/response/response.dart';
+import 'models/response/response_error.dart';
+import 'models/response/response_login.dart';
 
 class ScreenLogin extends StatelessWidget {
   const ScreenLogin({super.key});
@@ -66,9 +70,24 @@ class ScreenLogin extends StatelessWidget {
                     children: [
                       ElevatedButton( 
                         child: Text("Войти"),
-                        onPressed: () {
+                        onPressed: () async {
                           // Попытка залогиниться                        
-                          ApiService.login();
+                          Response response = await ServiceApi.login();
+                          if (response is ResponseLogin) {
+                            // Логинимся...
+                            ResponseLogin loginResponse = response;
+                          } else if (response is ResponseError) {
+                            ResponseError errorResponse = response;
+
+                            if (context.mounted) {
+                              ServiseUI.showErrorMessage(
+                                context,
+                                errorResponse.message
+                              );
+                            }
+                            // Выводим сообщение об ошибке
+                          }
+                          
                           // Переход на главный экран
                           //Navigator.pushReplacement(
                           //  context,

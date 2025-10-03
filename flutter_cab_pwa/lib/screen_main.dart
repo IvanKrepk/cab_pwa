@@ -112,11 +112,10 @@ class _StateMainScreen extends State<ScreenMain> {
 
   // Процедура отображения и настройки меню Аккаунт
   void _showAccountMenu(BuildContext context) {
-    double heightAppBar = kToolbarHeight;           // Высота стандартного toolbar = 56.0
-
     OverlayEntry? overlayEntry;
     overlayEntry = OverlayEntry(
       builder: (context) {
+        double heightAppBar = kToolbarHeight;                               // Высота стандартного toolbar = 56.0
         double heightSystemStatusBar = MediaQuery.of(context).padding.top;  //высота системного toolbar на устройстве
 
         return Stack(
@@ -126,9 +125,9 @@ class _StateMainScreen extends State<ScreenMain> {
               onDismiss: () => overlayEntry?.remove(),
             ),
             Positioned(
-              top: heightAppBar + heightSystemStatusBar,  // Вычисляем координату верхней границы меню, что бы меню открывалось ровно после toolbar приложения
-              right: 0,                                   // По горизонтали менб примыкает к правому краю приложения
-              child: IntrinsicWidth(                      // Ключевая обёртка: делает ширину равной самому широкому дочернему элементу
+              top: heightAppBar + heightSystemStatusBar,                    // Вычисляем координату верхней границы меню, что бы меню открывалось ровно после toolbar приложения
+              right: 0,                                                     // По горизонтали менб примыкает к правому краю приложения
+              child: IntrinsicWidth(                                        // Ключевая обёртка: делает ширину равной самому широкому дочернему элементу
                 stepWidth: 56.0, 
                 child: MenuAccount(
                   // Логика перехода на страницу Аккаунт

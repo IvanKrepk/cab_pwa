@@ -2,7 +2,7 @@
 
 namespace CabPwaApi.Responses.LoginResponse
 {
-    public class LoginResponseSuccess: LoginResponse
+    public class LoginResponseSuccess: Response
     {
         [JsonPropertyName("user_name")]
         public string? user_name { get; set; }

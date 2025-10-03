@@ -1,10 +1,10 @@
-// models/login_request.dart
+// models/request_login.dart
 
-class LoginRequest {
+class RequestLogin {
   final String? webLogin;
   final String? password;
 
-  LoginRequest(this.webLogin, this.password);
+  RequestLogin(this.webLogin, this.password);
 
   Map<String, dynamic> toJson() {
     return {

@@ -1,6 +1,7 @@
 // Controllers/CabPwaController.cs
 using CabPwaApi.Models.Office;
 using CabPwaApi.Requests;
+using CabPwaApi.Responses;
 using CabPwaApi.Responses.LoginResponse;
 using Microsoft.AspNetCore.Mvc;
 
@@ -59,9 +60,9 @@ namespace CabPwaApi.Controllers
         /// <response code="401">Ошибка авторизации</response>
         [HttpPost("login")]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(LoginResponse), 200)]
-        [ProducesResponseType(typeof(LoginResponse), 401)]
-        public ActionResult<LoginResponse> Login([FromBody] LoginRequest loginRequest)
+        [ProducesResponseType(typeof(Response), 200)]
+        [ProducesResponseType(typeof(Response), 401)]
+        public ActionResult<Response> Login([FromBody] LoginRequest loginRequest)
         {
             _logger.Log(LogLevel.Information, "Попытка залогиниться, login - {0}", loginRequest.web_login);
 
@@ -74,7 +75,7 @@ namespace CabPwaApi.Controllers
 
             if (accounts.Count <= 0)
             {
-                return StatusCode(401, new LoginResponseError
+                return StatusCode(401, new ResponseError
                 {
                     message = "Не удалось войти в Кабинет водителя (Неправильный логин или аккаунт не существует)."
                 });
@@ -87,7 +88,7 @@ namespace CabPwaApi.Controllers
 
             if (!isPasswordAccepted)
             {
-                return StatusCode(401, new LoginResponseError
+                return StatusCode(401, new ResponseError
                 {
                     message = "Неправильный пароль. Проверьте раскладку клавиатуры."
                 });
@@ -102,7 +103,7 @@ namespace CabPwaApi.Controllers
             {
                 if (vCardAccounts.Count > 1)
                 {
-                    return StatusCode(401, new LoginResponseError
+                    return StatusCode(401, new ResponseError
                     {
                         message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица"
                     });
@@ -134,7 +135,7 @@ namespace CabPwaApi.Controllers
                         select A).ToList();
                 if (vCardAccounts.Count > 0)
                 {
-                    return StatusCode(401, new LoginResponseError
+                    return StatusCode(401, new ResponseError
                     {
                         message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь привязанную виртуальную карту)."
                     });
@@ -147,14 +148,14 @@ namespace CabPwaApi.Controllers
                         select A).ToList();
                     if (vCardAccounts.Count > 0)
                     {
-                        return StatusCode(401, new LoginResponseError
+                        return StatusCode(401, new ResponseError
                         {
                             message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь доступ только к привязанной виртуальной карте."
                         });
                     }
                     else
                     {
-                        return StatusCode(401, new LoginResponseError
+                        return StatusCode(401, new ResponseError
                         {
                             message = "Не удалось войти в Кабинет водителя (Аккаунт не существует)."
                         });
