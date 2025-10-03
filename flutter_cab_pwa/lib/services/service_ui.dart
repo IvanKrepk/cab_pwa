@@ -5,7 +5,7 @@ import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
 class ServiseUI {
 
   // Процедура отображения всплывающих виджетов поверх экрана
-  static void showOverlayWidget(
+  static OverlayEntry showOverlayWidget(
     BuildContext context,
     Widget overlayWidget,                                   // Виджет, который будет отображаться 
     [Color? modalBarrierColor = Colors.transparent]       // Цвет фона, окружающего overlayWidget
@@ -28,6 +28,7 @@ class ServiseUI {
     );
 
     Overlay.of(context).insert(overlayEntry);
+    return overlayEntry;
   }
 
   // Процедура отображения сообщения об ошибке

@@ -5,6 +5,7 @@ import 'page_home.dart';
 import 'page_account.dart';
 import 'menu_account.dart';
 import 'screen_login.dart';
+import 'services/service_ui.dart';
 
 class ScreenMain extends StatefulWidget {
   const ScreenMain({super.key});
@@ -112,7 +113,39 @@ class _StateMainScreen extends State<ScreenMain> {
 
   // Процедура отображения и настройки меню Аккаунт
   void _showAccountMenu(BuildContext context) {
+    double heightAppBar = kToolbarHeight;                               // Высота стандартного toolbar = 56.0
+    double heightSystemStatusBar = MediaQuery.of(context).padding.top;  //высота системного toolbar на устройстве
+
     OverlayEntry? overlayEntry;
+
+    overlayEntry = ServiseUI.showOverlayWidget(
+      context,
+      Positioned(
+        top: heightAppBar + heightSystemStatusBar,                    // Вычисляем координату верхней границы меню, что бы меню открывалось ровно после toolbar приложения
+        right: 0, 
+        child: IntrinsicWidth(
+          child: MenuAccount(
+                  // Логика перехода на страницу Аккаунт
+                  onShowAccountPage: () {
+                    setState(() {
+                      _currentPage = PagesMainScreen.pageAccount;
+                    });
+                  },
+                  // Логика разлогирования
+                  onLogout: () {
+                    Navigator.pushReplacement(
+                      context, 
+                      MaterialPageRoute(builder: (context) => ScreenLogin())
+                    );
+                  },
+                  // Логика функции закрытия меню
+                  onClose: () => overlayEntry?.remove(),
+                ),  
+        )
+      )
+    );
+
+    /*OverlayEntry? overlayEntry;
     overlayEntry = OverlayEntry(
       builder: (context) {
         double heightAppBar = kToolbarHeight;                               // Высота стандартного toolbar = 56.0
@@ -153,6 +186,6 @@ class _StateMainScreen extends State<ScreenMain> {
       }
     );
 
-    Overlay.of(context).insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);*/
   }
 }

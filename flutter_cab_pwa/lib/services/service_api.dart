@@ -8,9 +8,12 @@ import 'package:http/http.dart' as http;
 
 class ServiceApi {
   // Метод login
-  static Future<Response> login() async {
+  static Future<Response> login(RequestLogin requestLogin) async {
 
-    RequestLogin request = RequestLogin('333', '3333');
+    RequestLogin request = RequestLogin(
+      requestLogin.webLogin, 
+      requestLogin.password
+    );
 
     var url = Uri.https('localhost:7247', 'CabPwa/login');
     var response = await http.post(
