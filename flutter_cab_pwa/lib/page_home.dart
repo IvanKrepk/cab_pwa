@@ -1,5 +1,6 @@
 // page_home.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_cab_pwa/services/service_user_session.dart';
 import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -39,7 +40,7 @@ class PageHome extends StatelessWidget {
               ),
               SizedBox(width: 5),
               Text(
-                "709",
+                UserSession().userName ?? "Не определено",
                 style: themeData.textTheme.displayMedium?.apply(
                   color: colorScheme.onSurface
                 ),

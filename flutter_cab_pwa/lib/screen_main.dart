@@ -6,6 +6,7 @@ import 'page_account.dart';
 import 'menu_account.dart';
 import 'screen_login.dart';
 import 'services/service_ui.dart';
+import 'services/service_user_session.dart';
 
 class ScreenMain extends StatefulWidget {
   const ScreenMain({super.key});
@@ -131,8 +132,11 @@ class _StateMainScreen extends State<ScreenMain> {
                       _currentPage = PagesMainScreen.pageAccount;
                     });
                   },
-                  // Логика разлогирования
                   onLogout: () {
+                    // Очищаем сессию
+                    UserSession().clear();
+
+                    // Переходим на экран логина
                     Navigator.pushReplacement(
                       context, 
                       MaterialPageRoute(builder: (context) => ScreenLogin())
@@ -144,48 +148,5 @@ class _StateMainScreen extends State<ScreenMain> {
         )
       )
     );
-
-    /*OverlayEntry? overlayEntry;
-    overlayEntry = OverlayEntry(
-      builder: (context) {
-        double heightAppBar = kToolbarHeight;                               // Высота стандартного toolbar = 56.0
-        double heightSystemStatusBar = MediaQuery.of(context).padding.top;  //высота системного toolbar на устройстве
-
-        return Stack(
-          children: [
-            ModalBarrier(
-              color: Colors.transparent,
-              onDismiss: () => overlayEntry?.remove(),
-            ),
-            Positioned(
-              top: heightAppBar + heightSystemStatusBar,                    // Вычисляем координату верхней границы меню, что бы меню открывалось ровно после toolbar приложения
-              right: 0,                                                     // По горизонтали менб примыкает к правому краю приложения
-              child: IntrinsicWidth(                                        // Ключевая обёртка: делает ширину равной самому широкому дочернему элементу
-                stepWidth: 56.0, 
-                child: MenuAccount(
-                  // Логика перехода на страницу Аккаунт
-                  onShowAccountPage: () {
-                    setState(() {
-                      _currentPage = PagesMainScreen.pageAccount;
-                    });
-                  },
-                  // Логика разлогирования
-                  onLogout: () {
-                    Navigator.pushReplacement(
-                      context, 
-                      MaterialPageRoute(builder: (context) => ScreenLogin())
-                    );
-                  },
-                  // Логика функции закрытия меню
-                  onClose: () => overlayEntry?.remove(),
-                )
-              )
-            )
-          ]
-        );
-      }
-    );
-
-    Overlay.of(context).insert(overlayEntry);*/
   }
 }

@@ -1,6 +1,7 @@
 // screen_login.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_cab_pwa/models/request_login.dart';
+import 'package:flutter_cab_pwa/services/service_user_session.dart';
 import 'styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'services/service_api.dart';
@@ -99,9 +100,10 @@ class _ScreenLoginState extends State<ScreenLogin> {
                             )
                           );
                           if (response is ResponseLogin) {
-                            // Логинимся...
+                            // Сохраняем сессию
                             ResponseLogin loginResponse = response;
-                            
+                            UserSession().saveUserData(loginResponse);
+
                             // Переход на главный экран
                             if (context.mounted) {
                               Navigator.pushReplacement(
