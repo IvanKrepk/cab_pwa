@@ -4,6 +4,7 @@ import 'package:flutter_cab_pwa/services/service_user_session.dart';
 import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'services/service_common.dart';
 
 class PageHome extends StatelessWidget {
   const PageHome({super.key});
@@ -21,11 +22,22 @@ class PageHome extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            "Здравствуйте", 
-            style: themeData.textTheme.displayMedium?.apply(
-              color: colorScheme.onSurface
-            )
+          Row(
+            children: [
+              Text(
+                "Здравствуйте", 
+                style: themeData.textTheme.displayMedium?.apply(
+                  color: colorScheme.onSurface
+                )
+              ),
+              SizedBox(width: 5),
+              Text(
+                UserSession().displayName ?? "Не определено",
+                style: themeData.textTheme.displaySmall?.apply(
+                  color: colorScheme.onSurface
+                ),
+              )
+            ]
           ),
           SizedBox(height: 10),
           Row(
@@ -40,8 +52,10 @@ class PageHome extends StatelessWidget {
               ),
               SizedBox(width: 5),
               Text(
-                UserSession().userName ?? "Не определено",
-                style: themeData.textTheme.displayMedium?.apply(
+                UserSession().cardNumber == 0 ? 
+                  "Не определен" : 
+                  UserSession().cardNumber.toString(),
+                  style: themeData.textTheme.displaySmall?.apply(
                   color: colorScheme.onSurface
                 ),
               )
@@ -84,7 +98,12 @@ class PageHome extends StatelessWidget {
               color: colorScheme.surfaceContainerLowest
             ),
             child: QrImageView(
-              data: "Demo",
+              // Генерируем QR, используя закодированные данные о карте
+              data: 'esvcard:${ServiceCommon.encodeCardData(
+                cardCode: UserSession().cardCode ?? 0,
+                accountNumber: UserSession().accountNumber ?? 0,
+                cardQrDatetime: ServiceCommon.genDateTime()
+              )}',
               version: QrVersions.auto,
               size: 50,
               backgroundColor: Colors.transparent,

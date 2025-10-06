@@ -34,6 +34,24 @@ class UserSession {
   // Получаем имя пользователя
   String? get userName => _prefs.getString('userName');
 
+  // Получаем отображаемое имя пользователя
+  String? get displayName => _prefs.getString('displayName');
+
+  // Код карты
+  int? get cardCode => _prefs.getInt('cardCode');
+
+  // Номер карты
+  int? get cardNumber => _prefs.getInt('cardNumber');
+
+  // Полный номер карты (<номер эмитента>-<номер карты>)
+  String? get cardFullNumber => _prefs.getString('cardFullNumber');
+
+  // Код эмитента
+  int? get emitentCode => _prefs.getInt('emitentCode');
+
+  // Номер аккаунта
+  int? get accountNumber => _prefs.getInt('accountNumber');
+
   // Получаем токен (всегда нужен для API)
   String? get token => _prefs.getString('token');
 
