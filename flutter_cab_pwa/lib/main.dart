@@ -1,6 +1,7 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_cab_pwa/screen_login.dart';
+import 'package:flutter_cab_pwa/screen_main.dart';
 import 'styles/app_theme.dart';
 import 'services/service_user_session.dart';
 
@@ -21,9 +22,16 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: appTheme,
-      home: ScreenLogin()
-    );
+    if (UserSession().isLoggedIn) {
+      return MaterialApp(
+        theme: appTheme,
+        home: ScreenMain()
+      );
+    } else {
+      return MaterialApp(
+        theme: appTheme,
+        home: ScreenLogin()
+      );  
+    }
   }
 }

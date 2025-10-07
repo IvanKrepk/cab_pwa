@@ -37,6 +37,7 @@ namespace CabPwaApi.Controllers
         ///         'https://localhost:7247/CabPwa/login' \
         ///         -H 'accept: application/json' \
         ///         -H 'Content-Type: application/json' \
+        ///         -H 'X-Client-ID: 9485b3a0-f0a8-4ecd-9dbe-dd5d827c95ab'
         ///         -d '{
         ///                 "web_login": "333",
         ///                 "password": "333"
@@ -64,7 +65,10 @@ namespace CabPwaApi.Controllers
         [ProducesResponseType(typeof(Response), 401)]
         public ActionResult<Response> Login([FromBody] LoginRequest loginRequest)
         {
-            _logger.Log(LogLevel.Information, "Попытка залогиниться, login - {0}", loginRequest.web_login);
+            // Id клиента
+            string clientId = Request.Headers["X-Client-ID"].ToString();
+
+            _logger.Log(LogLevel.Information, "({0}) Попытка залогиниться, login - {1}", clientId, loginRequest.web_login);
 
             var accounts = (
                 from W in _context.VWebLoginsAndAllAccounts
@@ -75,6 +79,9 @@ namespace CabPwaApi.Controllers
 
             if (accounts.Count <= 0)
             {
+                _logger.Log(LogLevel.Information,
+                    "({0}) Не удалось войти в Кабинет водителя (Неправильный логин или аккаунт не существует).", clientId);
+
                 return StatusCode(401, new ResponseError
                 {
                     message = "Не удалось войти в Кабинет водителя (Неправильный логин или аккаунт не существует)."
@@ -88,6 +95,8 @@ namespace CabPwaApi.Controllers
 
             if (!isPasswordAccepted)
             {
+                _logger.Log(LogLevel.Information, "({0}) Неправильный пароль. Проверьте раскладку клавиатуры.", clientId);
+
                 return StatusCode(401, new ResponseError
                 {
                     message = "Неправильный пароль. Проверьте раскладку клавиатуры."
@@ -103,6 +112,9 @@ namespace CabPwaApi.Controllers
             {
                 if (vCardAccounts.Count > 1)
                 {
+                    _logger.Log(LogLevel.Information, "({0}) Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица",
+                        clientId);
+
                     return StatusCode(401, new ResponseError
                     {
                         message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица"
@@ -110,6 +122,28 @@ namespace CabPwaApi.Controllers
                 }
                 else
                 {
+                    string userName = vCardAccounts.First().WebLogin;
+                    string displayName = vCardAccounts.First().WebLogin;
+                    int? cardCode = vCardAccounts.First().Account.CardEmitentCode;
+                    int? cardNumber = vCardAccounts.First().Account.CardGraphNumber;
+                    string cardFullNumber = (vCardAccounts.First().Account.CardGraphNumber != null) ?
+                        $"{vCardAccounts.First().Account.CardEmitentCode}-{vCardAccounts.First().Account.CardGraphNumber}" :
+                        $"{vCardAccounts.First().Account.CardEmitentCode}";
+                    int? emitendCode = vCardAccounts.First().Account.CardEmitentCode;
+                    int? accountNumber = vCardAccounts.First().Account.AccountNumber;
+                    string token = Utils.GenerateToken(loginRequest.web_login,
+                        loginRequest.password,
+                        vCardAccounts.First().Account.AccountNumber);
+
+                    _logger.Log(LogLevel.Information, $"({clientId}) Успешный вход в систему!{Environment.NewLine}" +
+                        $"  user_name: {userName}{Environment.NewLine}" +
+                        $"  display_name: {displayName}{Environment.NewLine}" +
+                        $"  card_code: {cardCode}{Environment.NewLine}" +
+                        $"  card_number: {cardNumber}{Environment.NewLine}" +
+                        $"  card_full_number: {cardFullNumber}{Environment.NewLine}" +
+                        $"  emitend_code: {emitendCode}{Environment.NewLine}" +
+                        $"  account_number: {accountNumber}");
+
                     return StatusCode(200, new LoginResponseSuccess
                     {
                         user_name = vCardAccounts.First().WebLogin,
@@ -135,6 +169,10 @@ namespace CabPwaApi.Controllers
                         select A).ToList();
                 if (vCardAccounts.Count > 0)
                 {
+                    _logger.Log(LogLevel.Information, 
+                        "({0}) Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь привязанную виртуальную карту).",
+                        clientId);
+
                     return StatusCode(401, new ResponseError
                     {
                         message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь привязанную виртуальную карту)."
@@ -148,6 +186,10 @@ namespace CabPwaApi.Controllers
                         select A).ToList();
                     if (vCardAccounts.Count > 0)
                     {
+                        _logger.Log(LogLevel.Information, 
+                            "({0}) Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь доступ только к привязанной виртуальной карте.", 
+                            clientId);
+
                         return StatusCode(401, new ResponseError
                         {
                             message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь доступ только к привязанной виртуальной карте."
@@ -155,6 +197,10 @@ namespace CabPwaApi.Controllers
                     }
                     else
                     {
+                        _logger.Log(LogLevel.Information, 
+                            "({0}) Не удалось войти в Кабинет водителя (Аккаунт не существует).",
+                            clientId);
+
                         return StatusCode(401, new ResponseError
                         {
                             message = "Не удалось войти в Кабинет водителя (Аккаунт не существует)."

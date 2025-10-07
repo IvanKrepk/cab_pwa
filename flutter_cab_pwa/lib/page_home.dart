@@ -25,7 +25,7 @@ class PageHome extends StatelessWidget {
           Row(
             children: [
               Text(
-                "Здравствуйте", 
+                "Здравствуйте,", 
                 style: themeData.textTheme.displayMedium?.apply(
                   color: colorScheme.onSurface
                 )

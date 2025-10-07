@@ -60,6 +60,14 @@ class UserSession {
 
   // Очистка данных при выходе
   void clear() {
-    _prefs.clear();
+    // Удаляем ТОЛЬКО данные сессии пользователя
+    _prefs.remove('userName');
+    _prefs.remove('displayName');
+    _prefs.remove('cardCode');
+    _prefs.remove('cardNumber');
+    _prefs.remove('cardFullNumber');
+    _prefs.remove('emitentCode');
+    _prefs.remove('accountNumber');
+    _prefs.remove('token');
   }
 }

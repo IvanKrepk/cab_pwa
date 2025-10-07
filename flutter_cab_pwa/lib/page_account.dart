@@ -1,15 +1,36 @@
 // page_account.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_cab_pwa/services/service_user_session.dart';
 import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
 import 'element_password_field.dart';
 
-class PageAccount extends StatelessWidget {
+class PageAccount extends StatefulWidget {
   const PageAccount({super.key});
+  
+  @override
+  State<StatefulWidget> createState() => _PageAccountState();
+}
+class _PageAccountState extends State<PageAccount> {
+
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _displayNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    
+    _passwordController.dispose();
+    _displayNameController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     final ColorScheme colorScheme = themeData.colorScheme;
+
+    // Заполняем Отображаемое имя
+    _displayNameController.text = UserSession().displayName ?? "";
 
     return Container(
       margin: appContainerMargin,
@@ -59,7 +80,7 @@ class PageAccount extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "333",
+                          UserSession().userName ?? "Не определён",
                           style: themeData.textTheme.titleLarge?.apply(
                             color: colorScheme.onSurface
                           ),
@@ -128,7 +149,9 @@ class PageAccount extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: 300), 
-                        child: TextField(),
+                        child: TextField(
+                          controller: _displayNameController,
+                        ),
                       )                    
                     )
                   ],
