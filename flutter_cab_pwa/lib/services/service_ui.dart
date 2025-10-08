@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
 
-class ServiseUI {
+class ServiceUI {
 
   // Процедура отображения всплывающих виджетов поверх экрана
   static OverlayEntry showOverlayWidget(
@@ -64,7 +64,7 @@ class ServiseUI {
                     textAlign: TextAlign.center,
                     message ?? 'Ошибка не распознана',
                     style: themeData.textTheme.labelLarge?.apply(
-                      color: colorScheme.error,
+                      color: colorScheme.onErrorContainer,
                     ),
                   ),
                 ),
@@ -75,5 +75,50 @@ class ServiseUI {
       ),
       Color.fromARGB(150, 0, 0, 0)
     );
+  }
+
+  static void showInfoMessage(
+    BuildContext context,
+    String? message
+  ) {
+    final ThemeData themeData = Theme.of(context);
+    final ColorScheme colorScheme = themeData.colorScheme;
+
+    showOverlayWidget(
+      context, 
+      Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min, 
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.widthOf(context) * 0.7
+              ),
+              child: Container(
+                padding: appContainerPadding,
+                decoration: BoxDecoration(
+                  borderRadius: appContainerBorderRadius,
+                  border: Border.all(
+                    width: 3,
+                    color: colorScheme.primary,
+                  ),
+                  color: colorScheme.primaryContainer,
+                ),
+                child: Center(
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    message ?? 'Ошибка не распознана',
+                    style: themeData.textTheme.labelLarge?.apply(
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+      Color.fromARGB(150, 0, 0, 0)
+    );  
   }
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿// Responses/ResponseError.cs
+using System.Text.Json.Serialization;
 
 namespace CabPwaApi.Responses
 {

@@ -2,8 +2,8 @@
 using CabPwaApi.Models.Office;
 using CabPwaApi.Requests;
 using CabPwaApi.Responses;
-using CabPwaApi.Responses.LoginResponse;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace CabPwaApi.Controllers
 {
@@ -21,6 +21,14 @@ namespace CabPwaApi.Controllers
         {
             _context = context;
             _logger = logger;
+        }
+
+        private bool _checkClientToken(string token, string clientId)
+        {
+            // !!! Доделать позже!!!
+            // ...
+            _logger.Log(LogLevel.Information, $"({clientId}) Проверка токена прошла успешно");
+            return true;
         }
 
         /// <summary>
@@ -63,7 +71,7 @@ namespace CabPwaApi.Controllers
         [Produces("application/json")]
         [ProducesResponseType(typeof(Response), 200)]
         [ProducesResponseType(typeof(Response), 401)]
-        public ActionResult<Response> Login([FromBody] LoginRequest loginRequest)
+        public ActionResult<Response> Login([FromBody] RequestLogin loginRequest)
         {
             // Id клиента
             string clientId = Request.Headers["X-Client-ID"].ToString();
@@ -144,7 +152,7 @@ namespace CabPwaApi.Controllers
                         $"  emitend_code: {emitendCode}{Environment.NewLine}" +
                         $"  account_number: {accountNumber}");
 
-                    return StatusCode(200, new LoginResponseSuccess
+                    return StatusCode(200, new ResponseLoginSuccess
                     {
                         user_name = vCardAccounts.First().WebLogin,
                         display_name = vCardAccounts.First().Account.AccountName,
@@ -207,6 +215,67 @@ namespace CabPwaApi.Controllers
                         });
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Редактировать данные аккаунта.
+        /// </summary>
+        /// <remarks>
+        /// 
+        /// Требует <b><font color="blue">номер аккаунта</font></b>, <b><font color="blue">новое имя аккаунта</font></b><br/> и/или <b><font color="blue">новый пароль</font></b><br/>
+        /// Токен передается через заголовок <b><font color="blue">X-API-Token</font></b> или через параметр <b><font color="blue">api_token</font></b> в теле запроса
+        ///       
+        /// <b>Пример запроса:</b>
+        /// 
+        ///     curl -X 'POST' \
+        ///         'https://localhost:7247/CabPwa/account/update' \
+        ///         -H 'accept: application/json' \
+        ///         -H 'Content-Type: application/json' \
+        ///         -H 'X-Client-ID: 9485b3a0-f0a8-4ecd-9dbe-dd5d827c95ab'
+        ///         -d '{
+        ///                 "account_number": 43533,
+        ///                 "account_name_new": "New Name"
+        ///                 "password_new": "32wdad412"
+        ///         }'
+        ///       
+        /// <b>Пример ответа:</b>
+        /// 
+        ///     {
+        ///         "message": "Данные аккаунта успешно отредактированы",
+        ///     }
+        /// 
+        /// </remarks>
+        /// <response code="200">Данные об аккаунте успешно отредактированы</response>
+        /// <response code="401">Ошибка редактирования</response>
+        [HttpPost("account/update")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Response), 200)]
+        [ProducesResponseType(typeof(Response), 401)]
+        public ActionResult<Response> AccountUpdate([FromBody] RequestAccountUpdate request)
+        {
+            // Id клиента
+            string clientId = Request.Headers["X-Client-ID"].ToString();
+
+            string token = Request.Headers["X-Client-Token"].ToString();
+            if (_checkClientToken(token, clientId))
+            {
+                _logger.Log(LogLevel.Information, $"({clientId}) Обновление аккаунта {Environment.NewLine}" +
+                    $"  Номер аккаунта - {request.account_number}{Environment.NewLine}" +
+                    $"  Новое имя - {request.account_name_new}{Environment.NewLine}" +
+                    $"{(request.password_new == string.Empty ? "  Пароль не изменился" : "  Задан новый пароль")}");
+
+                return new ResponseAccountUpdate
+                {
+                    message = "OK"
+                };
+            } else
+            {
+                _logger.Log(LogLevel.Information, $"({clientId}) Проверка токена не прошла");
+                return new ResponseError
+                {
+                    message = "Проверка токена не прошла"
+                };
             }
         }
     }

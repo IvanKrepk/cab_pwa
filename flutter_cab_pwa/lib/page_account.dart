@@ -1,7 +1,13 @@
 // page_account.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_cab_pwa/models/request/request_cab_account_update.dart';
+import 'package:flutter_cab_pwa/models/response/response_cab_error.dart';
+import 'package:flutter_cab_pwa/services/service_api.dart';
+import 'package:flutter_cab_pwa/services/service_ui.dart';
 import 'package:flutter_cab_pwa/services/service_user_session.dart';
 import 'package:flutter_cab_pwa/styles/styles_shapes.dart';
+import 'models/response/response_cab_account_update.dart';
+import 'models/response/response_cab.dart';
 import 'element_password_field.dart';
 
 class PageAccount extends StatefulWidget {
@@ -116,7 +122,7 @@ class _PageAccountState extends State<PageAccount> {
                       alignment: Alignment.centerLeft,
                       child: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: 300),
-                        child: ElementPasswordField()
+                        child: ElementPasswordField(controller: _passwordController)
                       )                       
                     )
                   ],
@@ -171,8 +177,39 @@ class _PageAccountState extends State<PageAccount> {
                     color: colorScheme.onPrimary
                   )
                 ),
-                onPressed: (){
-                  // Сохраняем настройки аккаунта ...
+                onPressed: () async {
+                  String newDisplayName = _displayNameController.text;
+                  String newPassword = _passwordController.text;
+
+                  if (newDisplayName != "") {
+                    // Сохраняем настройки аккаунта ...
+                    ResponseCab response = await ServiceApi.accountUpdate(
+                      RequestCabAccountUpdate(
+                        UserSession().accountNumber ?? -1,       // Передаем номер аккаунта
+                        newDisplayName,                          // Передаем новое имя
+                        newPassword                              // Передаем новый пароль
+                      )
+                    );
+                  
+                    if (response is ResponseCabAccountUpdate) {
+                      if (context.mounted) {
+                        ServiceUI.showInfoMessage(
+                          context, 
+                          response.message
+                        );
+                      }
+                    } else if (response is ResponseCabError) {
+                      if (context.mounted) {
+                        ServiceUI.showErrorMessage(
+                          context, 
+                          response.message);  
+                      }
+                    }
+                  } else {
+                    if  (context.mounted) {
+                      ServiceUI.showErrorMessage(context, "Отображаемое имя не может быть пустым");
+                    }
+                  }
                 }
               )
             )

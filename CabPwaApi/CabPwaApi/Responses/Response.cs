@@ -1,5 +1,4 @@
-﻿// Responses/LoginResponse.cs
-using System.Text.Json.Serialization;
+﻿// Responses/Response.cs
 
 namespace CabPwaApi.Responses
 {

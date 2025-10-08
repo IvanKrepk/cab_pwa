@@ -2,9 +2,14 @@
 import 'package:flutter/material.dart';
 
 class ElementPasswordField extends StatefulWidget {
-  const ElementPasswordField({super.key, this.style});
+  const ElementPasswordField({
+    super.key, 
+    this.style,
+    this.controller
+  });
 
   final TextStyle? style;
+  final TextEditingController? controller;
 
   @override
   State<StatefulWidget> createState() {
@@ -14,13 +19,13 @@ class ElementPasswordField extends StatefulWidget {
 }
 
 class _ElementPasswordFieldState extends State<ElementPasswordField> {
-
   // Отображать пароль или не отображать
   bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: widget.controller,
       style: widget.style,
       obscureText: !_isPasswordVisible,
       decoration: InputDecoration(

@@ -1,14 +1,15 @@
 // screen_login.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_cab_pwa/models/request_login.dart';
+import 'package:flutter_cab_pwa/models/request/request_cab_login.dart';
 import 'package:flutter_cab_pwa/services/service_user_session.dart';
+import 'package:flutter_cab_pwa/services/service_client_manager.dart';
 import 'styles/styles_shapes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'services/service_api.dart';
 import 'services/service_ui.dart';
-import 'models/response/response.dart';
-import 'models/response/response_error.dart';
-import 'models/response/response_login.dart';
+import 'models/response/response_cab.dart';
+import 'models/response/response_cab_error.dart';
+import 'models/response/response_cab_login.dart';
 import 'screen_main.dart';
 
 class ScreenLogin extends StatefulWidget {
@@ -93,16 +94,19 @@ class _ScreenLoginState extends State<ScreenLogin> {
                         child: Text("Войти"),
                         onPressed: () async {
                           // Попытка залогиниться                        
-                          Response response = await ServiceApi.login(
-                            RequestLogin(
+                          ResponseCab response = await ServiceApi.login(
+                            RequestCabLogin(
                               _loginController.text,
                               _passwordController.text
                             )
                           );
-                          if (response is ResponseLogin) {
+                          if (response is ResponseCabLogin) {
                             // Сохраняем сессию
-                            ResponseLogin loginResponse = response;
+                            ResponseCabLogin loginResponse = response;
                             UserSession().saveUserData(loginResponse);
+                            
+                            // Сохраняем токен
+                            ServiceClientManager.setToken(loginResponse.token); 
 
                             // Переход на главный экран
                             if (context.mounted) {
@@ -111,11 +115,11 @@ class _ScreenLoginState extends State<ScreenLogin> {
                                 MaterialPageRoute(builder: (context) => ScreenMain()),
                               );
                             }
-                          } else if (response is ResponseError) {
+                          } else if (response is ResponseCabError) {
                             // Выводим сообщение об ошибке
-                            ResponseError errorResponse = response;
+                            ResponseCabError errorResponse = response;
                             if (context.mounted) {
-                              ServiseUI.showErrorMessage(
+                              ServiceUI.showErrorMessage(
                                 context,
                                 errorResponse.message
                               );

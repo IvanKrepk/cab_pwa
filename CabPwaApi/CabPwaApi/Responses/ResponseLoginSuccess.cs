@@ -1,8 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿// Responses/ResponseLoginSuccess.cs
+using System.Text.Json.Serialization;
 
-namespace CabPwaApi.Responses.LoginResponse
+namespace CabPwaApi.Responses
 {
-    public class LoginResponseSuccess: Response
+    public class ResponseLoginSuccess: Response
     {
         [JsonPropertyName("user_name")]
         public string? user_name { get; set; }

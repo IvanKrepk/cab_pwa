@@ -1,6 +1,6 @@
 // services/service_user_session.dart
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/response/response_login.dart';
+import '../models/response/response_cab_login.dart';
 
 class UserSession {
   // Singleton гарантирует, что в приложении будет только один экземпляр класса UserSession
@@ -20,7 +20,7 @@ class UserSession {
   }
 
   // Сохраняем данные пользователя
-  void saveUserData(ResponseLogin userData) {
+  void saveUserData(ResponseCabLogin userData) {
     _prefs.setString('userName', userData.userName ?? '');
     _prefs.setString('displayName', userData.displayName ?? '');
     _prefs.setInt('cardCode', userData.cardCode ?? 0);
@@ -28,7 +28,7 @@ class UserSession {
     _prefs.setString('cardFullNumber', userData.cardFullNumber ?? '');
     _prefs.setInt('emitentCode', userData.emitentCode ?? 0);
     _prefs.setInt('accountNumber', userData.accountNumber ?? 0);
-    _prefs.setString('token', userData.token ?? '');
+    _prefs.setString('token', userData.token);
   }
 
   // Получаем имя пользователя

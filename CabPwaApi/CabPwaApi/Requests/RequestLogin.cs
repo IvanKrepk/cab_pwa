@@ -1,9 +1,9 @@
-﻿// Requests/LoginRequest.cs
+﻿// Requests/RequestLogin.cs
 using System.Text.Json.Serialization;
 
 namespace CabPwaApi.Requests
 {
-    public class LoginRequest
+    public class RequestLogin
     {
         [JsonPropertyName("web_login")]
         public string web_login { get; set; } = string.Empty;

@@ -119,7 +119,7 @@ class _StateMainScreen extends State<ScreenMain> {
 
     OverlayEntry? overlayEntry;
 
-    overlayEntry = ServiseUI.showOverlayWidget(
+    overlayEntry = ServiceUI.showOverlayWidget(
       context,
       Positioned(
         top: heightAppBar + heightSystemStatusBar,                    // Вычисляем координату верхней границы меню, что бы меню открывалось ровно после toolbar приложения
