@@ -60,7 +60,7 @@ class ServiceApi {
     if (status != 200) {
       return ResponseCabError.fromJson(jsonDecode(response.body));
     } else {
-      return ResponseCabAccountUpdate("message");
+      return ResponseCabAccountUpdate.fromJson(jsonDecode(response.body));
     }
   }
 }

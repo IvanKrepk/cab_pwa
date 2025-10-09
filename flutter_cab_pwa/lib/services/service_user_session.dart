@@ -21,8 +21,8 @@ class UserSession {
 
   // Сохраняем данные пользователя
   void saveUserData(ResponseCabLogin userData) {
-    _prefs.setString('userName', userData.userName ?? '');
-    _prefs.setString('displayName', userData.displayName ?? '');
+    _prefs.setString('webLogin', userData.webLogin ?? '');
+    _prefs.setString('accountName', userData.accountName ?? '');
     _prefs.setInt('cardCode', userData.cardCode ?? 0);
     _prefs.setInt('cardNumber', userData.cardNumber ?? 0);
     _prefs.setString('cardFullNumber', userData.cardFullNumber ?? '');
@@ -32,10 +32,13 @@ class UserSession {
   }
 
   // Получаем имя пользователя
-  String? get userName => _prefs.getString('userName');
+  String? get webLogin => _prefs.getString('webLogin');
 
-  // Получаем отображаемое имя пользователя
-  String? get displayName => _prefs.getString('displayName');
+  // Получаем отображаемое имя счёта
+  String? get accountName => _prefs.getString('accountName');
+
+  // Сохраняем отображаемое имя счёта
+  void setAccountName(String accountName) => _prefs.setString('accountName', accountName);
 
   // Код карты
   int? get cardCode => _prefs.getInt('cardCode');
@@ -61,8 +64,8 @@ class UserSession {
   // Очистка данных при выходе
   void clear() {
     // Удаляем ТОЛЬКО данные сессии пользователя
-    _prefs.remove('userName');
-    _prefs.remove('displayName');
+    _prefs.remove('webLogin');
+    _prefs.remove('accountName');
     _prefs.remove('cardCode');
     _prefs.remove('cardNumber');
     _prefs.remove('cardFullNumber');

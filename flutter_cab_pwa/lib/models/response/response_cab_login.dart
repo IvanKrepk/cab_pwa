@@ -2,8 +2,8 @@
 import 'response_cab.dart';
 
 class ResponseCabLogin extends ResponseCab {
-  final String? userName;
-  final String? displayName;
+  final String? webLogin;
+  final String? accountName;
   final int? cardCode;
   final int? cardNumber;
   final String? cardFullNumber;
@@ -12,8 +12,8 @@ class ResponseCabLogin extends ResponseCab {
   final String token;
 
   ResponseCabLogin(
-    this.userName,
-    this.displayName,
+    this.webLogin,
+    this.accountName,
     this.cardCode,
     this.cardNumber,
     this.cardFullNumber,
@@ -24,8 +24,8 @@ class ResponseCabLogin extends ResponseCab {
 
   factory ResponseCabLogin.fromJson(Map<String, dynamic> json) {
     return ResponseCabLogin(
-      json["user_name"], 
-      json["display_name"], 
+      json["web_login"], 
+      json["account_name"], 
       json["card_code"], 
       json["card_number"], 
       json["card_full_number"], 

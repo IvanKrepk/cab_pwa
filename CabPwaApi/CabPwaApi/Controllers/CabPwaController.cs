@@ -1,8 +1,10 @@
 // Controllers/CabPwaController.cs
 using CabPwaApi.Models.Office;
+using CabPwaApi.Models.Office.Tables;
 using CabPwaApi.Requests;
 using CabPwaApi.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 
 namespace CabPwaApi.Controllers
@@ -71,19 +73,19 @@ namespace CabPwaApi.Controllers
         [Produces("application/json")]
         [ProducesResponseType(typeof(Response), 200)]
         [ProducesResponseType(typeof(Response), 401)]
-        public ActionResult<Response> Login([FromBody] RequestLogin loginRequest)
+        public async Task<ActionResult<Response>> Login([FromBody] RequestLogin loginRequest)
         {
             // Id клиента
             string clientId = Request.Headers["X-Client-ID"].ToString();
 
             _logger.Log(LogLevel.Information, "({0}) Попытка залогиниться, login - {1}", clientId, loginRequest.web_login);
 
-            var accounts = (
+            var accounts = await (
                 from W in _context.VWebLoginsAndAllAccounts
                 join A in _context.Accounts on W.AccountNumber equals A.AccountNumber
                 join WA in _context.WebAccessLogins on W.WebLogin equals WA.WebLogin
                 where WA.WebLogin == loginRequest.web_login
-                select new { WA.WebLogin, WA.PassHash, WA.AllAccounts, Account = A }).ToList();
+                select new { WA.WebLogin, WA.PassHash, WA.AllAccounts, Account = A }).ToListAsync();
 
             if (accounts.Count <= 0)
             {
@@ -130,8 +132,8 @@ namespace CabPwaApi.Controllers
                 }
                 else
                 {
-                    string userName = vCardAccounts.First().WebLogin;
-                    string displayName = vCardAccounts.First().WebLogin;
+                    string webLogin = vCardAccounts.First().WebLogin;
+                    string? accountName = vCardAccounts.First().Account.AccountName;
                     int? cardCode = vCardAccounts.First().Account.CardEmitentCode;
                     int? cardNumber = vCardAccounts.First().Account.CardGraphNumber;
                     string cardFullNumber = (vCardAccounts.First().Account.CardGraphNumber != null) ?
@@ -144,8 +146,8 @@ namespace CabPwaApi.Controllers
                         vCardAccounts.First().Account.AccountNumber);
 
                     _logger.Log(LogLevel.Information, $"({clientId}) Успешный вход в систему!{Environment.NewLine}" +
-                        $"  user_name: {userName}{Environment.NewLine}" +
-                        $"  display_name: {displayName}{Environment.NewLine}" +
+                        $"  web_login: {webLogin}{Environment.NewLine}" +
+                        $"  account_name: {accountName}{Environment.NewLine}" +
                         $"  card_code: {cardCode}{Environment.NewLine}" +
                         $"  card_number: {cardNumber}{Environment.NewLine}" +
                         $"  card_full_number: {cardFullNumber}{Environment.NewLine}" +
@@ -154,8 +156,8 @@ namespace CabPwaApi.Controllers
 
                     return StatusCode(200, new ResponseLoginSuccess
                     {
-                        user_name = vCardAccounts.First().WebLogin,
-                        display_name = vCardAccounts.First().Account.AccountName,
+                        web_login = vCardAccounts.First().WebLogin,
+                        account_name = vCardAccounts.First().Account.AccountName,
                         card_code = vCardAccounts.First().Account.CardEmitentCode,
                         card_number = vCardAccounts.First().Account.CardGraphNumber,
                         card_full_number = (vCardAccounts.First().Account.CardGraphNumber != null) ? 
@@ -251,31 +253,107 @@ namespace CabPwaApi.Controllers
         [HttpPost("account/update")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Response), 200)]
+        [ProducesResponseType(typeof(Response), 400)]
         [ProducesResponseType(typeof(Response), 401)]
-        public ActionResult<Response> AccountUpdate([FromBody] RequestAccountUpdate request)
+        public async Task<ActionResult<Response>> AccountUpdate([FromBody] RequestAccountUpdate request)
         {
             // Id клиента
             string clientId = Request.Headers["X-Client-ID"].ToString();
 
+            // Проверяем токен клиента
             string token = Request.Headers["X-Client-Token"].ToString();
             if (_checkClientToken(token, clientId))
             {
+                bool isAccountNameEmpty = request.account_name_new == string.Empty;
+                bool isAccountNameChanged = false;
+                bool isPasswordChanged = request.password_new != string.Empty;
+
                 _logger.Log(LogLevel.Information, $"({clientId}) Обновление аккаунта {Environment.NewLine}" +
                     $"  Номер аккаунта - {request.account_number}{Environment.NewLine}" +
                     $"  Новое имя - {request.account_name_new}{Environment.NewLine}" +
-                    $"{(request.password_new == string.Empty ? "  Пароль не изменился" : "  Задан новый пароль")}");
+                    $"{(isPasswordChanged ? "  Пароль не изменился" : "  Задан новый пароль")}");
 
+                if (isAccountNameEmpty)
+                {
+                    return StatusCode(400, new ResponseError()
+                    {
+                        message = "Задано пустое имя аккаунта"
+                    });
+                }
+                
+                var account = await _context.Accounts.Where(a => a.AccountNumber == request.account_number).FirstOrDefaultAsync();
+                if (account != null)
+                {
+                    // Заменяем на новое имя аккаунта
+                    if (!account.AccountName!.Equals(request.account_name_new))
+                    {
+                        account.AccountName = request.account_name_new;
+                        isAccountNameChanged = true;
+                    }
+
+                    // Проверяем изменился ли пароль
+                    if (isPasswordChanged)
+                    {
+                        // Ищем логин, пароль которого требуется сменить
+                        var webLogin = await (
+                            from webLoginsAndAccounts in _context.VWebLoginsAndAccounts
+                            join webAccessLogins in _context.WebAccessLogins
+                               on webLoginsAndAccounts.Id equals webAccessLogins.Id
+                            join accounts in _context.Accounts
+                                on webLoginsAndAccounts.AccountNumber equals accounts.AccountNumber
+                            where (webAccessLogins.WebLogin == request.web_login) &&
+                                (accounts.AccountNumber == request.account_number)
+                            select new
+                            {
+                                webAccessLogins.Id,
+                                webAccessLogins.WebLogin,
+                                accounts.AccountNumber
+                            }).FirstOrDefaultAsync();
+ 
+                        // Если нашли подходящий логин, меняем пароль
+                        if (webLogin != null)
+                        {
+                            var webAccessLogin = await _context.WebAccessLogins.Where(
+                                WAL => WAL.Id == webLogin.Id
+                            ).FirstOrDefaultAsync();
+
+                            if (webAccessLogin != null)
+                            {
+                                webAccessLogin.PassHash = Utils.ComputeMD5(request.password_new);
+                            }
+                        }
+                    }
+                }
+                
+
+                string messageResponse = string.Empty;
+                if (isAccountNameChanged && isPasswordChanged)
+                {
+                    messageResponse = "Имя аккаунта и пароль успшно изменены!";
+                } 
+                else if (isAccountNameChanged && (!isPasswordChanged))
+                {
+                    messageResponse = "Имя аккаунта успешно изменено!";
+                }
+                else if ((!isAccountNameChanged) && isPasswordChanged)
+                {
+                    messageResponse = "Пароль успешно изменён!";
+                }
+
+                await _context.SaveChangesAsync();
                 return new ResponseAccountUpdate
                 {
-                    message = "OK"
+                    message = messageResponse,
+                    account_name_new = isAccountNameChanged ? request.account_name_new : null,
                 };
-            } else
+            } 
+            else
             {
                 _logger.Log(LogLevel.Information, $"({clientId}) Проверка токена не прошла");
-                return new ResponseError
+                return StatusCode(401, new ResponseError
                 {
-                    message = "Проверка токена не прошла"
-                };
+                    message = "Неверный токен авторизации"
+                });
             }
         }
     }

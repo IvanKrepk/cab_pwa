@@ -36,7 +36,7 @@ class _PageAccountState extends State<PageAccount> {
     final ColorScheme colorScheme = themeData.colorScheme;
 
     // Заполняем Отображаемое имя
-    _displayNameController.text = UserSession().displayName ?? "";
+    _displayNameController.text = UserSession().accountName ?? "";
 
     return Container(
       margin: appContainerMargin,
@@ -86,7 +86,7 @@ class _PageAccountState extends State<PageAccount> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          UserSession().userName ?? "Не определён",
+                          UserSession().webLogin ?? "Не определён",
                           style: themeData.textTheme.titleLarge?.apply(
                             color: colorScheme.onSurface
                           ),
@@ -186,18 +186,26 @@ class _PageAccountState extends State<PageAccount> {
                     ResponseCab response = await ServiceApi.accountUpdate(
                       RequestCabAccountUpdate(
                         UserSession().accountNumber ?? -1,       // Передаем номер аккаунта
+                        UserSession().webLogin ?? "",            // Передаем WebLogin
                         newDisplayName,                          // Передаем новое имя
                         newPassword                              // Передаем новый пароль
                       )
                     );
                   
+                    // Данные успешно изменены
                     if (response is ResponseCabAccountUpdate) {
+                      // Заменяем новое имя счёта
+                      if (response.accountNameNew != null) {
+                        UserSession().setAccountName(response.accountNameNew!);
+                      }      
+
                       if (context.mounted) {
                         ServiceUI.showInfoMessage(
                           context, 
                           response.message
                         );
                       }
+                    // Произошла ошибка
                     } else if (response is ResponseCabError) {
                       if (context.mounted) {
                         ServiceUI.showErrorMessage(

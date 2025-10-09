@@ -106,7 +106,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
                             UserSession().saveUserData(loginResponse);
                             
                             // Сохраняем токен
-                            ServiceClientManager.setToken(loginResponse.token); 
+                            ServiceClientManager.setToken(loginResponse.token);
 
                             // Переход на главный экран
                             if (context.mounted) {
@@ -128,7 +128,9 @@ class _ScreenLoginState extends State<ScreenLogin> {
                         },
                       ),
                       ElevatedButton(
-                        onPressed: (){}, 
+                        onPressed: (){
+                          // Логика "Забыли пароль?"
+                        }, 
                         child: Text("Забыли пароль?")
                       )
                     ],

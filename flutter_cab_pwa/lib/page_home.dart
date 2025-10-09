@@ -32,7 +32,7 @@ class PageHome extends StatelessWidget {
               ),
               SizedBox(width: 5),
               Text(
-                UserSession().displayName ?? "Не определено",
+                UserSession().accountName ?? "Не определено",
                 style: themeData.textTheme.displaySmall?.apply(
                   color: colorScheme.onSurface
                 ),

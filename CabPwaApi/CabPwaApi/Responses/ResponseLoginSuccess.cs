@@ -5,11 +5,11 @@ namespace CabPwaApi.Responses
 {
     public class ResponseLoginSuccess: Response
     {
-        [JsonPropertyName("user_name")]
-        public string? user_name { get; set; }
+        [JsonPropertyName("web_login")]
+        public string? web_login { get; set; }
 
-        [JsonPropertyName("display_name")]
-        public string? display_name { get; set; }
+        [JsonPropertyName("account_name")]
+        public string? account_name { get; set; }
 
         [JsonPropertyName("card_code")]
         public int? card_code { get; set; }

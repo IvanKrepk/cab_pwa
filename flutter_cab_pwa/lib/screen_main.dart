@@ -57,11 +57,17 @@ class _StateMainScreen extends State<ScreenMain> {
                   ),
                 ),
                 SizedBox(width: 5),
-                Text(
-                  "Кабинет водителя", 
-                  style: themeData.textTheme.headlineSmall?.apply(
-                    color: colorScheme.onPrimary
-                  )
+                TextButton(
+                  child: Text("Кабинет водителя", 
+                    style: themeData.textTheme.headlineSmall?.apply(
+                      color: colorScheme.onPrimary
+                    )
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _currentPage = PagesMainScreen.pageHome;
+                    });
+                  } ,
                 )
               ],
             ),
