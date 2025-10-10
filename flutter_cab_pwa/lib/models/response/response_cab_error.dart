@@ -4,10 +4,11 @@ import 'response_cab.dart';
 class ResponseCabError extends ResponseCab {
   final String? message;
 
-  ResponseCabError({this.message}); 
+  ResponseCabError(super.status, {this.message}); 
 
-  factory ResponseCabError.fromJson(Map<String, dynamic> json) {
+  factory ResponseCabError.fromJson(int status, Map<String, dynamic> json) {
     return ResponseCabError(
+      status = status,
       message: json["message"]
     );
   } 

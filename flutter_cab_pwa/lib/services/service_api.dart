@@ -33,7 +33,7 @@ class ServiceApi {
       headers: <String, String> {
         'Content-Type': 'application/json; charset=UTF-8',
         'X-Client-ID': clientId,
-        'X-Client-Token': token
+        'Authorization': 'Bearer $token'
       },
       body: jsonEncode(request.toJson())
     );
@@ -46,9 +46,13 @@ class ServiceApi {
     var response = await _makePostRequest('CabPwa/login', request);
     int status = response.statusCode;
     if (status != 200) {
-      return ResponseCabError.fromJson(jsonDecode(response.body));
+      try {
+        return ResponseCabError.fromJson(status, jsonDecode(response.body));
+      } catch (e) {
+        return ResponseCabError(status, message: "Ошибка выполнения запроса");
+      }
     } else {
-      return ResponseCabLogin.fromJson(jsonDecode(response.body));
+      return ResponseCabLogin.fromJson(status, jsonDecode(response.body));
     }
   }
 
@@ -58,9 +62,13 @@ class ServiceApi {
 
     int status = response.statusCode;
     if (status != 200) {
-      return ResponseCabError.fromJson(jsonDecode(response.body));
+      try {
+        return ResponseCabError.fromJson(status, jsonDecode(response.body));
+      } catch (e) {
+        return ResponseCabError(status, message: "Ошибка выполнения запроса");
+      }
     } else {
-      return ResponseCabAccountUpdate.fromJson(jsonDecode(response.body));
+      return ResponseCabAccountUpdate.fromJson(status, jsonDecode(response.body));
     }
   }
 }

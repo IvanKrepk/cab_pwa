@@ -1,11 +1,16 @@
-// Controllers/CabPwaController.cs
+п»ї// Controllers/CabPwaController.cs
 using CabPwaApi.Models.Office;
 using CabPwaApi.Models.Office.Tables;
 using CabPwaApi.Requests;
 using CabPwaApi.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace CabPwaApi.Controllers
 {
@@ -13,35 +18,30 @@ namespace CabPwaApi.Controllers
     [Route("[controller]")]
     public class CabPwaController : ControllerBase
     {
-        // Инструмент для логирования
+        // РРЅСЃС‚СЂСѓРјРµРЅС‚ РґР»СЏ Р»РѕРіРёСЂРѕРІР°РЅРёСЏ
         private readonly ILogger<CabPwaController> _logger;
 
-        // Контекст базы данных
+        private readonly IConfiguration _configuration;
+
+        // РљРѕРЅС‚РµРєСЃС‚ Р±Р°Р·С‹ РґР°РЅРЅС‹С…
         private readonly OfficeDBContext _context;
 
-        public CabPwaController(OfficeDBContext context, ILogger<CabPwaController> logger)
+        public CabPwaController(OfficeDBContext context, ILogger<CabPwaController> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
-        }
-
-        private bool _checkClientToken(string token, string clientId)
-        {
-            // !!! Доделать позже!!!
-            // ...
-            _logger.Log(LogLevel.Information, $"({clientId}) Проверка токена прошла успешно");
-            return true;
+            _configuration = configuration;
         }
 
         /// <summary>
-        /// Попытка залогиниться в системе.
+        /// РџРѕРїС‹С‚РєР° Р·Р°Р»РѕРіРёРЅРёС‚СЊСЃСЏ РІ СЃРёСЃС‚РµРјРµ.
         /// </summary>
         /// <remarks>
         /// 
-        /// Требует <b><font color="blue">логин</font></b> и <b><font color="blue">пароль</font></b><br/>
-        /// Токен передается через заголовок <b><font color="blue">X-API-Token</font></b> или через параметр <b><font color="blue">api_token</font></b> в теле запроса
+        /// РўСЂРµР±СѓРµС‚ <b><font color="blue">Р»РѕРіРёРЅ</font></b> Рё <b><font color="blue">РїР°СЂРѕР»СЊ</font></b><br/>
+        /// РўРѕРєРµРЅ РїРµСЂРµРґР°РµС‚СЃСЏ С‡РµСЂРµР· Р·Р°РіРѕР»РѕРІРѕРє <b><font color="blue">X-API-Token</font></b> РёР»Рё С‡РµСЂРµР· РїР°СЂР°РјРµС‚СЂ <b><font color="blue">api_token</font></b> РІ С‚РµР»Рµ Р·Р°РїСЂРѕСЃР°
         ///       
-        /// <b>Пример запроса:</b>
+        /// <b>РџСЂРёРјРµСЂ Р·Р°РїСЂРѕСЃР°:</b>
         /// 
         ///     curl -X 'POST' \
         ///         'https://localhost:7247/CabPwa/login' \
@@ -53,7 +53,7 @@ namespace CabPwaApi.Controllers
         ///                 "password": "333"
         ///         }'
         ///       
-        /// <b>Пример ответа:</b>
+        /// <b>РџСЂРёРјРµСЂ РѕС‚РІРµС‚Р°:</b>
         /// 
         ///     {
         ///         "user_name": "333",
@@ -67,18 +67,48 @@ namespace CabPwaApi.Controllers
         ///     }
         /// 
         /// </remarks>
-        /// <response code="200">Возвращает информацию о логине</response>
-        /// <response code="401">Ошибка авторизации</response>
+        /// <response code="200">Р’РѕР·РІСЂР°С‰Р°РµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ Р»РѕРіРёРЅРµ</response>
+        /// <response code="401">РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё</response>
         [HttpPost("login")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Response), 200)]
         [ProducesResponseType(typeof(Response), 401)]
         public async Task<ActionResult<Response>> Login([FromBody] RequestLogin loginRequest)
         {
-            // Id клиента
+            // Id РєР»РёРµРЅС‚Р°
             string clientId = Request.Headers["X-Client-ID"].ToString();
 
-            _logger.Log(LogLevel.Information, "({0}) Попытка залогиниться, login - {1}", clientId, loginRequest.web_login);
+            // Р“РµРЅРµСЂРёСЂСѓРµРј С‚РѕРєРµРЅ Р°РІС‚РѕСЂРёР·Р°С†РёРё
+            var jwtKey = _configuration["Jwt:Key"];
+            var jwtIssuer = _configuration["Jwt:Issuer"];
+            var jwtAudience = _configuration["Jwt:Audience"];
+
+            if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer))
+            {
+                return StatusCode(500, "JWT configuration is missing");
+            }
+
+            var claims = new[]
+            {
+                new Claim("userId", clientId),
+                new Claim(ClaimTypes.Name, "username"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: jwtIssuer,
+                audience: jwtAudience,
+                claims: claims,
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds
+            );
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+
+            _logger.Log(LogLevel.Information, "({0}) РџРѕРїС‹С‚РєР° Р·Р°Р»РѕРіРёРЅРёС‚СЊСЃСЏ, login - {1}", clientId, loginRequest.web_login);
 
             var accounts = await (
                 from W in _context.VWebLoginsAndAllAccounts
@@ -90,11 +120,11 @@ namespace CabPwaApi.Controllers
             if (accounts.Count <= 0)
             {
                 _logger.Log(LogLevel.Information,
-                    "({0}) Не удалось войти в Кабинет водителя (Неправильный логин или аккаунт не существует).", clientId);
+                    "({0}) РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ (РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ Р»РѕРіРёРЅ РёР»Рё Р°РєРєР°СѓРЅС‚ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚).", clientId);
 
                 return StatusCode(401, new ResponseError
                 {
-                    message = "Не удалось войти в Кабинет водителя (Неправильный логин или аккаунт не существует)."
+                    message = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ (РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ Р»РѕРіРёРЅ РёР»Рё Р°РєРєР°СѓРЅС‚ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚)."
                 });
             }
 
@@ -105,11 +135,11 @@ namespace CabPwaApi.Controllers
 
             if (!isPasswordAccepted)
             {
-                _logger.Log(LogLevel.Information, "({0}) Неправильный пароль. Проверьте раскладку клавиатуры.", clientId);
+                _logger.Log(LogLevel.Information, "({0}) РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ РїР°СЂРѕР»СЊ. РџСЂРѕРІРµСЂСЊС‚Рµ СЂР°СЃРєР»Р°РґРєСѓ РєР»Р°РІРёР°С‚СѓСЂС‹.", clientId);
 
                 return StatusCode(401, new ResponseError
                 {
-                    message = "Неправильный пароль. Проверьте раскладку клавиатуры."
+                    message = "РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ РїР°СЂРѕР»СЊ. РџСЂРѕРІРµСЂСЊС‚Рµ СЂР°СЃРєР»Р°РґРєСѓ РєР»Р°РІРёР°С‚СѓСЂС‹."
                 });
             }
 
@@ -122,12 +152,12 @@ namespace CabPwaApi.Controllers
             {
                 if (vCardAccounts.Count > 1)
                 {
-                    _logger.Log(LogLevel.Information, "({0}) Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица",
+                    _logger.Log(LogLevel.Information, "({0}) РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ. Р’РѕР№РґРёС‚Рµ РІ РєР°Р±РёРЅРµС‚ СЋСЂ. Р»РёС†Р°",
                         clientId);
 
                     return StatusCode(401, new ResponseError
                     {
-                        message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица"
+                        message = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ. Р’РѕР№РґРёС‚Рµ РІ РєР°Р±РёРЅРµС‚ СЋСЂ. Р»РёС†Р°"
                     });
                 }
                 else
@@ -141,11 +171,8 @@ namespace CabPwaApi.Controllers
                         $"{vCardAccounts.First().Account.CardEmitentCode}";
                     int? emitendCode = vCardAccounts.First().Account.CardEmitentCode;
                     int? accountNumber = vCardAccounts.First().Account.AccountNumber;
-                    string token = Utils.GenerateToken(loginRequest.web_login,
-                        loginRequest.password,
-                        vCardAccounts.First().Account.AccountNumber);
 
-                    _logger.Log(LogLevel.Information, $"({clientId}) Успешный вход в систему!{Environment.NewLine}" +
+                    _logger.Log(LogLevel.Information, $"({clientId}) РЈСЃРїРµС€РЅС‹Р№ РІС…РѕРґ РІ СЃРёСЃС‚РµРјСѓ!{Environment.NewLine}" +
                         $"  web_login: {webLogin}{Environment.NewLine}" +
                         $"  account_name: {accountName}{Environment.NewLine}" +
                         $"  card_code: {cardCode}{Environment.NewLine}" +
@@ -160,14 +187,12 @@ namespace CabPwaApi.Controllers
                         account_name = vCardAccounts.First().Account.AccountName,
                         card_code = vCardAccounts.First().Account.CardEmitentCode,
                         card_number = vCardAccounts.First().Account.CardGraphNumber,
-                        card_full_number = (vCardAccounts.First().Account.CardGraphNumber != null) ? 
+                        card_full_number = (vCardAccounts.First().Account.CardGraphNumber != null) ?
                             $"{vCardAccounts.First().Account.CardEmitentCode}-{vCardAccounts.First().Account.CardGraphNumber}" :
                             $"{vCardAccounts.First().Account.CardEmitentCode}",
                         emitend_code = vCardAccounts.First().Account.CardEmitentCode,
                         account_number = vCardAccounts.First().Account.AccountNumber,
-                        token = Utils.GenerateToken(loginRequest.web_login,
-                            loginRequest.password, 
-                            vCardAccounts.First().Account.AccountNumber)
+                        token = tokenString
                     });   
                 }
             }
@@ -180,12 +205,12 @@ namespace CabPwaApi.Controllers
                 if (vCardAccounts.Count > 0)
                 {
                     _logger.Log(LogLevel.Information, 
-                        "({0}) Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь привязанную виртуальную карту).",
+                        "({0}) РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ. Р’РѕР№РґРёС‚Рµ РІ РєР°Р±РёРЅРµС‚ СЋСЂ. Р»РёС†Р° (РђРєРєР°СѓРЅС‚ РґРѕР»Р¶РµРЅ РёРјРµС‚СЊ РїСЂРёРІСЏР·Р°РЅРЅСѓСЋ РІРёСЂС‚СѓР°Р»СЊРЅСѓСЋ РєР°СЂС‚Сѓ).",
                         clientId);
 
                     return StatusCode(401, new ResponseError
                     {
-                        message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь привязанную виртуальную карту)."
+                        message = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ. Р’РѕР№РґРёС‚Рµ РІ РєР°Р±РёРЅРµС‚ СЋСЂ. Р»РёС†Р° (РђРєРєР°СѓРЅС‚ РґРѕР»Р¶РµРЅ РёРјРµС‚СЊ РїСЂРёРІСЏР·Р°РЅРЅСѓСЋ РІРёСЂС‚СѓР°Р»СЊРЅСѓСЋ РєР°СЂС‚Сѓ)."
                     });
                 }
                 else
@@ -197,23 +222,23 @@ namespace CabPwaApi.Controllers
                     if (vCardAccounts.Count > 0)
                     {
                         _logger.Log(LogLevel.Information, 
-                            "({0}) Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь доступ только к привязанной виртуальной карте.", 
+                            "({0}) РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ. Р’РѕР№РґРёС‚Рµ РІ РєР°Р±РёРЅРµС‚ СЋСЂ. Р»РёС†Р° (РђРєРєР°СѓРЅС‚ РґРѕР»Р¶РµРЅ РёРјРµС‚СЊ РґРѕСЃС‚СѓРї С‚РѕР»СЊРєРѕ Рє РїСЂРёРІСЏР·Р°РЅРЅРѕР№ РІРёСЂС‚СѓР°Р»СЊРЅРѕР№ РєР°СЂС‚Рµ.", 
                             clientId);
 
                         return StatusCode(401, new ResponseError
                         {
-                            message = "Не удалось войти в Кабинет водителя. Войдите в кабинет юр. лица (Аккаунт должен иметь доступ только к привязанной виртуальной карте."
+                            message = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ. Р’РѕР№РґРёС‚Рµ РІ РєР°Р±РёРЅРµС‚ СЋСЂ. Р»РёС†Р° (РђРєРєР°СѓРЅС‚ РґРѕР»Р¶РµРЅ РёРјРµС‚СЊ РґРѕСЃС‚СѓРї С‚РѕР»СЊРєРѕ Рє РїСЂРёРІСЏР·Р°РЅРЅРѕР№ РІРёСЂС‚СѓР°Р»СЊРЅРѕР№ РєР°СЂС‚Рµ."
                         });
                     }
                     else
                     {
                         _logger.Log(LogLevel.Information, 
-                            "({0}) Не удалось войти в Кабинет водителя (Аккаунт не существует).",
+                            "({0}) РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ (РђРєРєР°СѓРЅС‚ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚).",
                             clientId);
 
                         return StatusCode(401, new ResponseError
                         {
-                            message = "Не удалось войти в Кабинет водителя (Аккаунт не существует)."
+                            message = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё РІ РљР°Р±РёРЅРµС‚ РІРѕРґРёС‚РµР»СЏ (РђРєРєР°СѓРЅС‚ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚)."
                         });
                     }
                 }
@@ -221,14 +246,14 @@ namespace CabPwaApi.Controllers
         }
 
         /// <summary>
-        /// Редактировать данные аккаунта.
+        /// Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РґР°РЅРЅС‹Рµ Р°РєРєР°СѓРЅС‚Р°.
         /// </summary>
         /// <remarks>
         /// 
-        /// Требует <b><font color="blue">номер аккаунта</font></b>, <b><font color="blue">новое имя аккаунта</font></b><br/> и/или <b><font color="blue">новый пароль</font></b><br/>
-        /// Токен передается через заголовок <b><font color="blue">X-API-Token</font></b> или через параметр <b><font color="blue">api_token</font></b> в теле запроса
+        /// РўСЂРµР±СѓРµС‚ <b><font color="blue">РЅРѕРјРµСЂ Р°РєРєР°СѓРЅС‚Р°</font></b>, <b><font color="blue">РЅРѕРІРѕРµ РёРјСЏ Р°РєРєР°СѓРЅС‚Р°</font></b><br/> Рё/РёР»Рё <b><font color="blue">РЅРѕРІС‹Р№ РїР°СЂРѕР»СЊ</font></b><br/>
+        /// РўРѕРєРµРЅ РїРµСЂРµРґР°РµС‚СЃСЏ С‡РµСЂРµР· Р·Р°РіРѕР»РѕРІРѕРє <b><font color="blue">X-API-Token</font></b> РёР»Рё С‡РµСЂРµР· РїР°СЂР°РјРµС‚СЂ <b><font color="blue">api_token</font></b> РІ С‚РµР»Рµ Р·Р°РїСЂРѕСЃР°
         ///       
-        /// <b>Пример запроса:</b>
+        /// <b>РџСЂРёРјРµСЂ Р·Р°РїСЂРѕСЃР°:</b>
         /// 
         ///     curl -X 'POST' \
         ///         'https://localhost:7247/CabPwa/account/update' \
@@ -241,120 +266,108 @@ namespace CabPwaApi.Controllers
         ///                 "password_new": "32wdad412"
         ///         }'
         ///       
-        /// <b>Пример ответа:</b>
+        /// <b>РџСЂРёРјРµСЂ РѕС‚РІРµС‚Р°:</b>
         /// 
         ///     {
-        ///         "message": "Данные аккаунта успешно отредактированы",
+        ///         "message": "Р”Р°РЅРЅС‹Рµ Р°РєРєР°СѓРЅС‚Р° СѓСЃРїРµС€РЅРѕ РѕС‚СЂРµРґР°РєС‚РёСЂРѕРІР°РЅС‹",
         ///     }
         /// 
         /// </remarks>
-        /// <response code="200">Данные об аккаунте успешно отредактированы</response>
-        /// <response code="401">Ошибка редактирования</response>
+        /// <response code="200">Р”Р°РЅРЅС‹Рµ РѕР± Р°РєРєР°СѓРЅС‚Рµ СѓСЃРїРµС€РЅРѕ РѕС‚СЂРµРґР°РєС‚РёСЂРѕРІР°РЅС‹</response>
+        /// <response code="401">РћС€РёР±РєР° СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ</response>
         [HttpPost("account/update")]
         [Produces("application/json")]
+        [Authorize]                                                  // СЌС‚Р° Р°С‚СЂРёР±СѓС‚ РіРѕРІРѕСЂРёС‚: "С‚СЂРµР±СѓРµС‚СЃСЏ РІР°Р»РёРґРЅС‹Р№ С‚РѕРєРµРЅ"
         [ProducesResponseType(typeof(Response), 200)]
         [ProducesResponseType(typeof(Response), 400)]
         [ProducesResponseType(typeof(Response), 401)]
         public async Task<ActionResult<Response>> AccountUpdate([FromBody] RequestAccountUpdate request)
         {
-            // Id клиента
+            // Id РєР»РёРµРЅС‚Р°
             string clientId = Request.Headers["X-Client-ID"].ToString();
 
-            // Проверяем токен клиента
-            string token = Request.Headers["X-Client-Token"].ToString();
-            if (_checkClientToken(token, clientId))
+            bool isAccountNameEmpty = request.account_name_new == string.Empty;
+            bool isAccountNameChanged = false;
+            bool isPasswordChanged = request.password_new != string.Empty;
+
+            _logger.Log(LogLevel.Information, $"({clientId}) РћР±РЅРѕРІР»РµРЅРёРµ Р°РєРєР°СѓРЅС‚Р° {Environment.NewLine}" +
+                $"  РќРѕРјРµСЂ Р°РєРєР°СѓРЅС‚Р° - {request.account_number}{Environment.NewLine}" +
+                $"  РќРѕРІРѕРµ РёРјСЏ - {request.account_name_new}{Environment.NewLine}" +
+                $"{(isPasswordChanged ? "  РџР°СЂРѕР»СЊ РЅРµ РёР·РјРµРЅРёР»СЃСЏ" : "  Р—Р°РґР°РЅ РЅРѕРІС‹Р№ РїР°СЂРѕР»СЊ")}");
+
+            if (isAccountNameEmpty)
             {
-                bool isAccountNameEmpty = request.account_name_new == string.Empty;
-                bool isAccountNameChanged = false;
-                bool isPasswordChanged = request.password_new != string.Empty;
-
-                _logger.Log(LogLevel.Information, $"({clientId}) Обновление аккаунта {Environment.NewLine}" +
-                    $"  Номер аккаунта - {request.account_number}{Environment.NewLine}" +
-                    $"  Новое имя - {request.account_name_new}{Environment.NewLine}" +
-                    $"{(isPasswordChanged ? "  Пароль не изменился" : "  Задан новый пароль")}");
-
-                if (isAccountNameEmpty)
+                return StatusCode(400, new ResponseError()
                 {
-                    return StatusCode(400, new ResponseError()
-                    {
-                        message = "Задано пустое имя аккаунта"
-                    });
+                    message = "Р—Р°РґР°РЅРѕ РїСѓСЃС‚РѕРµ РёРјСЏ Р°РєРєР°СѓРЅС‚Р°"
+                });
+            }
+            
+            var account = await _context.Accounts.Where(a => a.AccountNumber == request.account_number).FirstOrDefaultAsync();
+            if (account != null)
+            {
+                // Р—Р°РјРµРЅСЏРµРј РЅР° РЅРѕРІРѕРµ РёРјСЏ Р°РєРєР°СѓРЅС‚Р°
+                if (!account.AccountName!.Equals(request.account_name_new))
+                {
+                    account.AccountName = request.account_name_new;
+                    isAccountNameChanged = true;
                 }
-                
-                var account = await _context.Accounts.Where(a => a.AccountNumber == request.account_number).FirstOrDefaultAsync();
-                if (account != null)
+
+                // РџСЂРѕРІРµСЂСЏРµРј РёР·РјРµРЅРёР»СЃСЏ Р»Рё РїР°СЂРѕР»СЊ
+                if (isPasswordChanged)
                 {
-                    // Заменяем на новое имя аккаунта
-                    if (!account.AccountName!.Equals(request.account_name_new))
-                    {
-                        account.AccountName = request.account_name_new;
-                        isAccountNameChanged = true;
-                    }
-
-                    // Проверяем изменился ли пароль
-                    if (isPasswordChanged)
-                    {
-                        // Ищем логин, пароль которого требуется сменить
-                        var webLogin = await (
-                            from webLoginsAndAccounts in _context.VWebLoginsAndAccounts
-                            join webAccessLogins in _context.WebAccessLogins
-                               on webLoginsAndAccounts.Id equals webAccessLogins.Id
-                            join accounts in _context.Accounts
-                                on webLoginsAndAccounts.AccountNumber equals accounts.AccountNumber
-                            where (webAccessLogins.WebLogin == request.web_login) &&
-                                (accounts.AccountNumber == request.account_number)
-                            select new
-                            {
-                                webAccessLogins.Id,
-                                webAccessLogins.WebLogin,
-                                accounts.AccountNumber
-                            }).FirstOrDefaultAsync();
- 
-                        // Если нашли подходящий логин, меняем пароль
-                        if (webLogin != null)
+                    // РС‰РµРј Р»РѕРіРёРЅ, РїР°СЂРѕР»СЊ РєРѕС‚РѕСЂРѕРіРѕ С‚СЂРµР±СѓРµС‚СЃСЏ СЃРјРµРЅРёС‚СЊ
+                    var webLogin = await (
+                        from webLoginsAndAccounts in _context.VWebLoginsAndAccounts
+                        join webAccessLogins in _context.WebAccessLogins
+                           on webLoginsAndAccounts.Id equals webAccessLogins.Id
+                        join accounts in _context.Accounts
+                            on webLoginsAndAccounts.AccountNumber equals accounts.AccountNumber
+                        where (webAccessLogins.WebLogin == request.web_login) &&
+                            (accounts.AccountNumber == request.account_number)
+                        select new
                         {
-                            var webAccessLogin = await _context.WebAccessLogins.Where(
-                                WAL => WAL.Id == webLogin.Id
-                            ).FirstOrDefaultAsync();
+                            webAccessLogins.Id,
+                            webAccessLogins.WebLogin,
+                            accounts.AccountNumber
+                        }).FirstOrDefaultAsync();
+ 
+                    // Р•СЃР»Рё РЅР°С€Р»Рё РїРѕРґС…РѕРґСЏС‰РёР№ Р»РѕРіРёРЅ, РјРµРЅСЏРµРј РїР°СЂРѕР»СЊ
+                    if (webLogin != null)
+                    {
+                        var webAccessLogin = await _context.WebAccessLogins.Where(
+                            WAL => WAL.Id == webLogin.Id
+                        ).FirstOrDefaultAsync();
 
-                            if (webAccessLogin != null)
-                            {
-                                webAccessLogin.PassHash = Utils.ComputeMD5(request.password_new);
-                            }
+                        if (webAccessLogin != null)
+                        {
+                            webAccessLogin.PassHash = Utils.ComputeMD5(request.password_new);
                         }
                     }
                 }
-                
-
-                string messageResponse = string.Empty;
-                if (isAccountNameChanged && isPasswordChanged)
-                {
-                    messageResponse = "Имя аккаунта и пароль успшно изменены!";
-                } 
-                else if (isAccountNameChanged && (!isPasswordChanged))
-                {
-                    messageResponse = "Имя аккаунта успешно изменено!";
-                }
-                else if ((!isAccountNameChanged) && isPasswordChanged)
-                {
-                    messageResponse = "Пароль успешно изменён!";
-                }
-
-                await _context.SaveChangesAsync();
-                return new ResponseAccountUpdate
-                {
-                    message = messageResponse,
-                    account_name_new = isAccountNameChanged ? request.account_name_new : null,
-                };
-            } 
-            else
-            {
-                _logger.Log(LogLevel.Information, $"({clientId}) Проверка токена не прошла");
-                return StatusCode(401, new ResponseError
-                {
-                    message = "Неверный токен авторизации"
-                });
             }
+            
+
+            string messageResponse = string.Empty;
+            if (isAccountNameChanged && isPasswordChanged)
+            {
+                messageResponse = "РРјСЏ Р°РєРєР°СѓРЅС‚Р° Рё РїР°СЂРѕР»СЊ СѓСЃРїС€РЅРѕ РёР·РјРµРЅРµРЅС‹!";
+            } 
+            else if (isAccountNameChanged && (!isPasswordChanged))
+            {
+                messageResponse = "РРјСЏ Р°РєРєР°СѓРЅС‚Р° СѓСЃРїРµС€РЅРѕ РёР·РјРµРЅРµРЅРѕ!";
+            }
+            else if ((!isAccountNameChanged) && isPasswordChanged)
+            {
+                messageResponse = "РџР°СЂРѕР»СЊ СѓСЃРїРµС€РЅРѕ РёР·РјРµРЅС‘РЅ!";
+            }
+
+            await _context.SaveChangesAsync();
+            return new ResponseAccountUpdate
+            {
+                message = messageResponse,
+                account_name_new = isAccountNameChanged ? request.account_name_new : null,
+            };
         }
     }
 }

@@ -34,21 +34,5 @@ namespace CabPwaApi
                 return stringBuilder.ToString();
             }
         }
-
-        // Генерация хэшированного токена
-        public static string GenerateToken(string login, string password, int accountNum)
-        {
-            // Объединяем входные данные
-            string input = $"{login}:{password}:{accountNum}:{DateTime.UtcNow.Ticks}";
-
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(input);
-                var hash = sha256.ComputeHash(bytes);
-
-                // Преобразуем хеш в строку Base64
-                return Convert.ToBase64String(hash);
-            }
-        }
     }
 }

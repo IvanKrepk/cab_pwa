@@ -27,16 +27,20 @@ class _StateMainScreen extends State<ScreenMain> {
   // Текуший индекс страницы на главном экране
   PagesMainScreen _currentPage = PagesMainScreen.pageHome;
 
-  // Список страниц, для отображения на экране
-  final List<Widget> _pages = [
-    PageHome(),
-    PageAccount()
-  ];
-
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     final ColorScheme colorScheme = themeData.colorScheme;
+
+    Widget currentPage;
+
+    switch (_currentPage) {
+      case PagesMainScreen.pageHome:
+        currentPage = PageHome();
+        break;
+      case PagesMainScreen.pageAccount:
+        currentPage = PageAccount();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -64,9 +68,7 @@ class _StateMainScreen extends State<ScreenMain> {
                     )
                   ),
                   onPressed: () {
-                    setState(() {
-                      _currentPage = PagesMainScreen.pageHome;
-                    });
+                    setState(() =>_currentPage = PagesMainScreen.pageHome);
                   } ,
                 )
               ],
@@ -110,11 +112,7 @@ class _StateMainScreen extends State<ScreenMain> {
           ],
         ),
       ),
-      body: 
-        IndexedStack(
-          index: _currentPage.index,  // Индекс отображаемой страницы
-          children: _pages            // Список страниц главного экрана
-        ),
+      body: currentPage
     );
   }
 
@@ -134,9 +132,7 @@ class _StateMainScreen extends State<ScreenMain> {
           child: MenuAccount(
                   // Логика перехода на страницу Аккаунт
                   onShowAccountPage: () {
-                    setState(() {
-                      _currentPage = PagesMainScreen.pageAccount;
-                    });
+                    setState(() => _currentPage = PagesMainScreen.pageAccount);
                   },
                   onLogout: () {
                     // Очищаем сессию

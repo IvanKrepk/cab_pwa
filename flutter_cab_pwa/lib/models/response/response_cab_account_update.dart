@@ -5,10 +5,11 @@ class ResponseCabAccountUpdate extends ResponseCab {
   final String message;
   final String? accountNameNew;
 
-  ResponseCabAccountUpdate(this.message, {this.accountNameNew});
+  ResponseCabAccountUpdate(super.status, this.message, {this.accountNameNew});
 
-  factory ResponseCabAccountUpdate.fromJson(Map<String, dynamic> json) {
+  factory ResponseCabAccountUpdate.fromJson(int status, Map<String, dynamic> json) {
     return ResponseCabAccountUpdate(
+      status = status,
       json["message"],
       accountNameNew: json["account_name_new"]
     );

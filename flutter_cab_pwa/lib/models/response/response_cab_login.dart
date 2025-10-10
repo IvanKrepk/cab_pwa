@@ -12,6 +12,7 @@ class ResponseCabLogin extends ResponseCab {
   final String token;
 
   ResponseCabLogin(
+    super.status,
     this.webLogin,
     this.accountName,
     this.cardCode,
@@ -22,8 +23,9 @@ class ResponseCabLogin extends ResponseCab {
     this.token
   );
 
-  factory ResponseCabLogin.fromJson(Map<String, dynamic> json) {
+  factory ResponseCabLogin.fromJson(int status, Map<String, dynamic> json) {
     return ResponseCabLogin(
+      status,
       json["web_login"], 
       json["account_name"], 
       json["card_code"], 
